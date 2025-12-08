@@ -1,0 +1,343 @@
+// app/sales/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+
+type Flower = {
+  id: string;
+  name: string;
+  type: string | null;
+  category: string | null;
+  price: number;
+  discount_price: number | null;
+  discount_label: string | null;
+  stock: number;
+  photo: string | null;
+  city: string | null;
+  shop_id: string;
+  photo_updated_at: string | null;
+  created_at: string | null;
+};
+
+type ShopProfile = {
+  id: string;
+  shop_name: string | null;
+  address: string | null;
+  city: string | null;
+};
+
+type ShopsMap = Record<string, ShopProfile>;
+
+const isBouquetType = (type: string | null) => {
+  const t = (type || "").toLowerCase();
+  return t.includes("букет") || t.includes("компози");
+};
+
+// заблоковане оголошення (фото не міняли > 48 год)
+const isBlocked = (flower: Flower) => {
+  const lastUpdateStr = flower.photo_updated_at || flower.created_at;
+  if (!lastUpdateStr) return false;
+
+  const lastUpdate = new Date(lastUpdateStr).getTime();
+  const now = Date.now();
+  const diffHours = (now - lastUpdate) / (1000 * 60 * 60);
+  return diffHours > 48;
+};
+
+export default function SalesPage() {
+  const router = useRouter();
+
+  const [flowers, setFlowers] = useState<Flower[]>([]);
+  const [shops, setShops] = useState<ShopsMap>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // прості фільтри
+  const [cityFilter, setCityFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+
+  const fetchDiscountFlowers = async () => {
+    setLoading(true);
+    setError(null);
+
+    // 1) Тягнемо тільки ті квіти, де є discount_price
+    let query = supabase
+      .from("flowers")
+      .select(
+        `
+        id,
+        name,
+        type,
+        category,
+        price,
+        discount_price,
+        discount_label,
+        stock,
+        photo,
+        city,
+        shop_id,
+        photo_updated_at,
+        created_at
+      `
+      )
+      .not("discount_price", "is", null) // тільки зі знижкою
+      .order("created_at", { ascending: false });
+
+    if (cityFilter) {
+      query = query.ilike("city", `%${cityFilter}%`);
+    }
+
+    if (nameFilter) {
+      query = query.ilike("name", `%${nameFilter}%`);
+    }
+
+    const { data: flowersData, error: flowersError } = await query;
+
+    if (flowersError) {
+      console.error(flowersError);
+      setError("Не вдалося завантажити акційні квіти");
+      setLoading(false);
+      return;
+    }
+
+    const typedFlowers = (flowersData as Flower[]) || [];
+    // відфільтровуємо заблоковані (старе фото)
+    const visibleFlowers = typedFlowers.filter((f) => !isBlocked(f));
+    setFlowers(visibleFlowers);
+
+    // 2) Підтягуємо профілі магазинів
+    const shopIds = Array.from(
+      new Set(
+        visibleFlowers
+          .map((f) => f.shop_id)
+          .filter((id): id is string => Boolean(id))
+      )
+    );
+
+    if (shopIds.length > 0) {
+      const {
+        data: shopsData,
+        error: shopsError,
+      } = await supabase
+        .from("profiles")
+        .select("id, shop_name, address, city")
+        .in("id", shopIds);
+
+      if (shopsError) {
+        console.warn("Cannot load shops:", shopsError);
+      } else {
+        const map: ShopsMap = {};
+        (shopsData as ShopProfile[]).forEach((shop) => {
+          map[shop.id] = shop;
+        });
+        setShops(map);
+      }
+    } else {
+      setShops({});
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchDiscountFlowers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
+        {/* Заголовок */}
+        <header className="mb-8 md:mb-10">
+          <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">
+            Знижки та акції 🌟
+          </h1>
+          <p className="mt-2 text-sm text-slate-500 md:text-base">
+            Тут зібрані букети, квіти, вазони та композиції зі знижками.
+          </p>
+        </header>
+
+        {/* Фільтри */}
+        <section className="mb-10 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <div className="flex flex-col gap-3 md:flex-row">
+            <input
+              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+              placeholder="Місто (наприклад, Київ)"
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+            />
+            <input
+              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+              placeholder="Назва (наприклад, букет піонів)"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+            />
+            <button
+              onClick={fetchDiscountFlowers}
+              className="md:w-40 rounded-xl bg-pink-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600"
+            >
+              Оновити список
+            </button>
+          </div>
+        </section>
+
+        {loading && (
+          <p className="text-sm text-slate-600">Завантаження акційних товарів...</p>
+        )}
+        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+
+        {!loading && !flowers.length && !error && (
+          <p className="text-sm text-slate-600">
+            Зараз немає активних знижок. Заглянь пізніше 💐
+          </p>
+        )}
+
+        {/* Список акційних квітів */}
+        <section className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {flowers.map((flower) => {
+            const shop = shops[flower.shop_id];
+
+            const handleShowOnMap = () => {
+              const city = shop?.city || flower.city || "";
+              const address = shop?.address || "";
+              const label = shop?.shop_name || flower.name;
+
+              if (isBouquetType(flower.type)) {
+                const query = encodeURIComponent(
+                  [city, address, label].filter(Boolean).join(", ")
+                );
+
+                window.open(
+                  `https://www.google.com/maps/search/?api=1&query=${query}`,
+                  "_blank"
+                );
+                return;
+              }
+
+              const params = new URLSearchParams();
+              if (city) params.set("city", city);
+              if (flower.type) params.set("type", flower.type ?? "");
+              if (flower.name) params.set("name", flower.name);
+
+              router.push(`/map?${params.toString()}`);
+            };
+
+            const hasDiscount = flower.discount_price !== null;
+            const finalPrice = hasDiscount
+              ? (flower.discount_price as number)
+              : flower.price;
+
+            const label =
+              flower.discount_label && flower.discount_label.trim().length > 0
+                ? flower.discount_label
+                : "Знижка";
+
+            return (
+              <article
+                key={flower.id}
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="relative">
+                  {flower.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={flower.photo}
+                      alt={flower.name}
+                      className="h-44 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-44 w-full items-center justify-center bg-slate-50 text-sm text-slate-400">
+                      Без фото
+                    </div>
+                  )}
+
+                  {hasDiscount && (
+                    <span className="absolute left-3 top-3 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
+                      {label}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-1 flex-col p-4">
+                  <h2 className="text-base font-semibold text-slate-900">
+                    {flower.name}
+                  </h2>
+
+                  {flower.category && (
+                    <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-400">
+                      {flower.category}
+                    </p>
+                  )}
+
+                  {shop?.shop_name && (
+                    <p className="mt-1 text-xs text-slate-600">
+                      Магазин: {shop.shop_name}
+                    </p>
+                  )}
+
+                  {(flower.city || shop?.city) && (
+                    <p className="text-xs text-slate-500">
+                      Місто: {flower.city || shop?.city}
+                    </p>
+                  )}
+
+                  {shop?.address && (
+                    <p className="text-[11px] text-slate-500">
+                      Адреса: {shop.address}
+                    </p>
+                  )}
+
+                  {flower.type && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Тип: {flower.type}
+                    </p>
+                  )}
+
+                  {/* Ціни зі знижкою */}
+                  <div className="mt-3 flex items-baseline gap-2">
+                    {hasDiscount && (
+                      <p className="text-sm text-slate-400 line-through">
+                        {flower.price.toLocaleString("uk-UA")} грн
+                      </p>
+                    )}
+                    <p className="text-lg font-semibold text-slate-900">
+                      {finalPrice.toLocaleString("uk-UA")} грн
+                    </p>
+                    <span className="text-xs text-slate-500">
+                      {flower.stock > 0
+                        ? `(в наявності: ${flower.stock})`
+                        : "(нема в наявності)"}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-2">
+                    <button
+                      onClick={() => router.push(`/order/${flower.id}`)}
+                      disabled={flower.stock <= 0}
+                      className={`w-full rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                        flower.stock > 0
+                          ? "bg-pink-500 text-white hover:bg-pink-600"
+                          : "cursor-not-allowed bg-slate-200 text-slate-400"
+                      }`}
+                    >
+                      Замовити за акцією
+                    </button>
+
+                    <button
+                      onClick={handleShowOnMap}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                      Показати на мапі
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      </div>
+    </main>
+  );
+}
