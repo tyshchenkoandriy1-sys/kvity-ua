@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 type Flower = {
@@ -15,7 +15,7 @@ type Flower = {
   city: string | null;
   shop_id: string;
 
-  // 🔽 нові поля для знижок
+  // поля для знижок
   discount_price: number | null;
   discount_label: string | null;
 };
@@ -36,29 +36,33 @@ const isBouquetType = (type: string | null) => {
 };
 
 export default function FlowersCatalogPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const initialCity = searchParams.get("city") || "";
-  const initialName = searchParams.get("name") || "";
-  const initialType = searchParams.get("type") || "";
-
   const [flowers, setFlowers] = useState<Flower[]>([]);
   const [shops, setShops] = useState<ShopsMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [cityFilter, setCityFilter] = useState(initialCity);
-  const [nameFilter, setNameFilter] = useState(initialName);
-  const [typeFilter, setTypeFilter] = useState(initialType);
+  const [cityFilter, setCityFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
+  const router = useRouter();
 
-  const fetchFlowers = async () => {
+  // 🔹 основна функція завантаження квітів
+  const fetchFlowers = async (opts?: {
+    city?: string;
+    name?: string;
+    type?: string;
+    maxPrice?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
-    // 🔹 БАЗОВО: беремо тільки КВІТИ (по штуках)
+    const cityVal = opts?.city ?? cityFilter;
+    const nameVal = opts?.name ?? nameFilter;
+    const typeVal = opts?.type ?? typeFilter;
+    const maxPriceVal = opts?.maxPrice ?? maxPrice;
+
     let query = supabase
       .from("flowers")
       .select(
@@ -75,24 +79,23 @@ export default function FlowersCatalogPage() {
         discount_label
       `
       )
-      .ilike("type", "Квіти%") // 👈 дуже важливо — тут тільки поштучні квіти
+      .ilike("type", "Квіти%") // тільки поштучні квіти
       .order("created_at", { ascending: false });
 
-    if (cityFilter) {
-      query = query.ilike("city", `%${cityFilter}%`);
+    if (cityVal) {
+      query = query.ilike("city", `%${cityVal}%`);
     }
 
-    if (nameFilter) {
-      query = query.ilike("name", `%${nameFilter}%`);
+    if (nameVal) {
+      query = query.ilike("name", `%${nameVal}%`);
     }
 
-    if (typeFilter) {
-      // тут шукаємо вже всередині "Квіти · щось"
-      query = query.ilike("type", `%${typeFilter}%`);
+    if (typeVal) {
+      query = query.ilike("type", `%${typeVal}%`);
     }
 
-    if (maxPrice) {
-      const priceNumber = Number(maxPrice);
+    if (maxPriceVal) {
+      const priceNumber = Number(maxPriceVal);
       if (!isNaN(priceNumber) && priceNumber > 0) {
         query = query.lte("price", priceNumber);
       }
@@ -144,8 +147,29 @@ export default function FlowersCatalogPage() {
     setLoading(false);
   };
 
+  // 🔹 1) При першому рендері читаємо фільтри з URL (тільки на клієнті)
   useEffect(() => {
-    fetchFlowers();
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    const cityFromUrl = params.get("city") || "";
+    const nameFromUrl = params.get("name") || "";
+    const typeFromUrl = params.get("type") || "";
+    const maxFromUrl = params.get("maxPrice") || params.get("price") || "";
+
+    if (cityFromUrl) setCityFilter(cityFromUrl);
+    if (nameFromUrl) setNameFilter(nameFromUrl);
+    if (typeFromUrl) setTypeFilter(typeFromUrl);
+    if (maxFromUrl) setMaxPrice(maxFromUrl);
+
+    // одразу завантажуємо список з цими фільтрами
+    fetchFlowers({
+      city: cityFromUrl,
+      name: nameFromUrl,
+      type: typeFromUrl,
+      maxPrice: maxFromUrl,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -191,7 +215,7 @@ export default function FlowersCatalogPage() {
                 onChange={(e) => setMaxPrice(e.target.value)}
               />
               <button
-                onClick={fetchFlowers}
+                onClick={() => fetchFlowers()}
                 className="rounded-xl bg-pink-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600"
               >
                 Пошук
@@ -216,9 +240,7 @@ export default function FlowersCatalogPage() {
           {flowers.map((flower) => {
             const shop = shops[flower.shop_id];
 
-                        // коректно перетворюємо discount_price у число
             const rawDiscount = flower.discount_price;
-
             const discountValue =
               rawDiscount !== null &&
               rawDiscount !== undefined &&
@@ -233,7 +255,6 @@ export default function FlowersCatalogPage() {
               flower.discount_label && flower.discount_label.trim().length > 0
                 ? flower.discount_label
                 : "Знижка";
-
 
             const handleShowOnMap = () => {
               const city = shop?.city || flower.city || "";
@@ -251,7 +272,7 @@ export default function FlowersCatalogPage() {
                 return;
               }
 
-              // (fallback на випадок, якщо сюди випадково потрапить букет)
+              // fallback на випадок, якщо сюди випадково потрапить букет
               const query = encodeURIComponent(
                 [city, address, label].filter(Boolean).join(", ")
               );
