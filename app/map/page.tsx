@@ -1,7 +1,7 @@
+// app/map/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -49,20 +49,25 @@ const CITY_COORDS: Record<string, [number, number]> = {
 };
 
 export default function MapPage() {
-  const searchParams = useSearchParams();
-
-  // те, що приходить в урлі
-  const rawCity = searchParams.get("city") || "";
-  const rawType = searchParams.get("type") || "";
-  const rawName = searchParams.get("name") || ""; // на майбутнє, якщо додамо пошук по назві
-
-  const cityParam = rawCity.trim();
-  const typeParam = rawType.trim();
-  const nameParam = rawName.trim();
+  // 🔹 параметри з урла (читаємо на клієнті)
+  const [cityParam, setCityParam] = useState("");
+  const [typeParam, setTypeParam] = useState("");
+  const [nameParam, setNameParam] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [flowers, setFlowers] = useState<FlowerRow[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+
+  // 0️⃣ Один раз читаємо query-параметри з URL на клієнті
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    setCityParam((params.get("city") || "").trim());
+    setTypeParam((params.get("type") || "").trim());
+    setNameParam((params.get("name") || "").trim());
+  }, []);
 
   // 1️⃣ Один раз тягнемо всі квіти з join'ом на profiles
   useEffect(() => {
@@ -113,8 +118,7 @@ export default function MapPage() {
     return flowers.filter((f) => {
       const profile = f.profiles?.[0];
 
-      const cityValue =
-        (f.city || profile?.city || "").toLowerCase();
+      const cityValue = (f.city || profile?.city || "").toLowerCase();
       const typeValue = (f.type || "").toLowerCase();
       const nameValue = (f.name || "").toLowerCase();
 
@@ -157,14 +161,11 @@ export default function MapPage() {
       }
     }
 
-    return Array.from(map.values()).sort(
-      (a, b) => a.minPrice - b.minPrice
-    );
+    return Array.from(map.values()).sort((a, b) => a.minPrice - b.minPrice);
   }, [filteredFlowers]);
 
   // 4️⃣ Вираховуємо центр мапи
   const mapCenter: [number, number] = useMemo(() => {
-    // якщо є магазин з координатами — беремо його
     const shopWithCoords = shops.find(
       (s) => s.lat != null && s.lng != null
     );
@@ -172,24 +173,23 @@ export default function MapPage() {
       return [shopWithCoords.lat, shopWithCoords.lng];
     }
 
-    // інакше — по місту з урла (без регістру)
     const key = cityParam.toLowerCase();
     if (key && CITY_COORDS[key]) {
       return CITY_COORDS[key];
     }
 
-    // fallback — центр України
-    return [49.0, 31.0];
+    return [49.0, 31.0]; // центр України
   }, [shops, cityParam]);
 
   // 5️⃣ Текст активних фільтрів
-  const activeFilterText = [
-    cityParam && `Місто: ${cityParam}`,
-    typeParam && `Тип: ${typeParam}`,
-    nameParam && `Назва: ${nameParam}`,
-  ]
-    .filter(Boolean)
-    .join(" · ") || "Усі міста, типи та назви";
+  const activeFilterText =
+    [
+      cityParam && `Місто: ${cityParam}`,
+      typeParam && `Тип: ${typeParam}`,
+      nameParam && `Назва: ${nameParam}`,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Усі міста, типи та назви";
 
   return (
     <main className="flex min-h-[500px] h-[calc(100vh-64px)] flex-col bg-slate-50 text-slate-900 md:flex-row">
@@ -199,9 +199,7 @@ export default function MapPage() {
           <h1 className="text-sm font-semibold text-slate-900">
             Магазини на мапі
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            {activeFilterText}
-          </p>
+          <p className="mt-1 text-xs text-slate-500">{activeFilterText}</p>
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
