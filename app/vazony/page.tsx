@@ -15,8 +15,9 @@ type Vazony = {
   city: string | null;
   shop_id: string;
 
-  // поля для знижок (як у flowers)
-  discount_price: number | null;
+  // оновлена модель знижок
+  sale_price: number | null;
+  is_on_sale: boolean;
   discount_label: string | null;
 };
 
@@ -58,7 +59,8 @@ export default function VazonyPage() {
         photo,
         city,
         shop_id,
-        discount_price,
+        sale_price,
+        is_on_sale,
         discount_label
       `
       )
@@ -89,7 +91,13 @@ export default function VazonyPage() {
       return;
     }
 
-    const typed = (data as Vazony[]) || [];
+    const typed = ((data as any[]) || []).map((f) => ({
+      ...f,
+      sale_price: f.sale_price ?? null,
+      is_on_sale: f.is_on_sale ?? false,
+      discount_label: f.discount_label ?? null,
+    })) as Vazony[];
+
     setVazony(typed);
 
     // підтягуємо магазини
@@ -193,10 +201,13 @@ export default function VazonyPage() {
             const shop = shops[item.shop_id];
 
             const hasDiscount =
-              item.discount_price !== null &&
-              !isNaN(Number(item.discount_price));
+              item.is_on_sale &&
+              item.sale_price !== null &&
+              !isNaN(Number(item.sale_price)) &&
+              Number(item.sale_price) < item.price;
+
             const finalPrice = hasDiscount
-              ? Number(item.discount_price)
+              ? Number(item.sale_price)
               : item.price;
 
             const discountText =

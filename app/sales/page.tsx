@@ -11,8 +11,9 @@ type Flower = {
   type: string | null;
   category: string | null;
   price: number;
-  discount_price: number | null;
+  sale_price: number | null;
   discount_label: string | null;
+  is_on_sale: boolean;
   stock: number;
   photo: string | null;
   city: string | null;
@@ -62,7 +63,7 @@ export default function SalesPage() {
     setLoading(true);
     setError(null);
 
-    // 1) Тягнемо тільки ті квіти, де є discount_price
+    // 1) Тягнемо тільки ті квіти, де включена знижка
     let query = supabase
       .from("flowers")
       .select(
@@ -72,8 +73,9 @@ export default function SalesPage() {
         type,
         category,
         price,
-        discount_price,
+        sale_price,
         discount_label,
+        is_on_sale,
         stock,
         photo,
         city,
@@ -82,7 +84,8 @@ export default function SalesPage() {
         created_at
       `
       )
-      .not("discount_price", "is", null) // тільки зі знижкою
+      .eq("is_on_sale", true)
+      .not("sale_price", "is", null)
       .order("created_at", { ascending: false });
 
     if (cityFilter) {
@@ -103,8 +106,25 @@ export default function SalesPage() {
     }
 
     const typedFlowers = (flowersData as Flower[]) || [];
-    // відфільтровуємо заблоковані (старе фото)
-    const visibleFlowers = typedFlowers.filter((f) => !isBlocked(f));
+
+    // гарантуємо дефолтні значення
+    const normalized = typedFlowers.map((f) => ({
+      ...f,
+      sale_price: f.sale_price ?? null,
+      is_on_sale: f.is_on_sale ?? false,
+      discount_label: f.discount_label ?? null,
+    }));
+
+    // відфільтровуємо заблоковані (старе фото) + некоректні знижки
+    const visibleFlowers = normalized.filter((f) => {
+      if (isBlocked(f)) return false;
+      if (!f.is_on_sale) return false;
+      if (f.sale_price == null) return false;
+      if (f.sale_price <= 0) return false;
+      if (f.sale_price >= f.price) return false;
+      return true;
+    });
+
     setFlowers(visibleFlowers);
 
     // 2) Підтягуємо профілі магазинів
@@ -184,7 +204,9 @@ export default function SalesPage() {
         </section>
 
         {loading && (
-          <p className="text-sm text-slate-600">Завантаження акційних товарів...</p>
+          <p className="text-sm text-slate-600">
+            Завантаження акційних товарів...
+          </p>
         )}
         {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
 
@@ -224,9 +246,14 @@ export default function SalesPage() {
               router.push(`/map?${params.toString()}`);
             };
 
-            const hasDiscount = flower.discount_price !== null;
+            const hasDiscount =
+              flower.is_on_sale &&
+              flower.sale_price !== null &&
+              !isNaN(Number(flower.sale_price)) &&
+              Number(flower.sale_price) < flower.price;
+
             const finalPrice = hasDiscount
-              ? (flower.discount_price as number)
+              ? Number(flower.sale_price)
               : flower.price;
 
             const label =

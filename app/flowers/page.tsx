@@ -15,8 +15,9 @@ type Flower = {
   city: string | null;
   shop_id: string;
 
-  // поля для знижок
-  discount_price: number | null;
+  // поля для знижок (оновлено)
+  sale_price: number | null;
+  is_on_sale: boolean;
   discount_label: string | null;
 };
 
@@ -75,7 +76,8 @@ export default function FlowersCatalogPage() {
         photo,
         city,
         shop_id,
-        discount_price,
+        sale_price,
+        is_on_sale,
         discount_label
       `
       )
@@ -103,12 +105,23 @@ export default function FlowersCatalogPage() {
 
     const { data: flowersData, error: flowersError } = await query;
 
-    if (flowersError) {
-      console.error(flowersError);
-      setError("Не вдалося завантажити квіти");
-      setLoading(false);
-      return;
-    }
+   if (flowersError) {
+  console.error("SUPABASE ERROR /flowers:", flowersError);
+
+  // ТИМЧАСОВО: показуємо повністю об'єкт помилки як текст
+  try {
+    setError(JSON.stringify(flowersError, null, 2));
+  } catch {
+    // якщо раптом stringify впаде
+    // @ts-ignore
+    setError(String(flowersError.message || flowersError || "Не вдалося завантажити квіти"));
+  }
+
+  setLoading(false);
+  return;
+}
+
+
 
     const typedFlowers = (flowersData as Flower[]) || [];
     setFlowers(typedFlowers);
@@ -240,16 +253,15 @@ export default function FlowersCatalogPage() {
           {flowers.map((flower) => {
             const shop = shops[flower.shop_id];
 
-            const rawDiscount = flower.discount_price;
-            const discountValue =
-              rawDiscount !== null &&
-              rawDiscount !== undefined &&
-              !isNaN(Number(rawDiscount))
-                ? Number(rawDiscount)
-                : null;
+            const hasDiscount =
+              flower.is_on_sale &&
+              flower.sale_price !== null &&
+              !isNaN(Number(flower.sale_price)) &&
+              Number(flower.sale_price) < flower.price;
 
-            const hasDiscount = discountValue !== null;
-            const finalPrice = hasDiscount ? discountValue : flower.price;
+            const finalPrice = hasDiscount
+              ? Number(flower.sale_price)
+              : flower.price;
 
             const discountText =
               flower.discount_label && flower.discount_label.trim().length > 0

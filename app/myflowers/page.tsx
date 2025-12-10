@@ -1,3 +1,4 @@
+// app/myflowers/page.tsx
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
@@ -16,9 +17,8 @@ type Flower = {
   photo_updated_at: string | null;
   created_at: string | null;
 
-  // 🔽 нові поля для знижок
-    // 🔽 нові поля для знижок (узгоджено зі /flowers і /sales)
-  discount_price: number | null;
+  // поля для знижок (оновлено)
+  sale_price: number | null;
   is_on_sale: boolean;
   discount_label: string | null;
 };
@@ -78,14 +78,13 @@ export default function MyFlowersPage() {
     if (flowersError) {
       setError("Не вдалося завантажити ваші квіти");
     } else {
-      // 🔽 гарантуємо дефолтні значення для нових полів
+      // гарантуємо дефолтні значення для нових полів
       const normalized = ((flowersData as any[]) || []).map((f) => ({
-  ...f,
-  discount_price: f.discount_price ?? null,
-  is_on_sale: f.is_on_sale ?? false,
-  discount_label: f.discount_label ?? null,
-})) as Flower[];
-
+        ...f,
+        sale_price: f.sale_price ?? null,
+        is_on_sale: f.is_on_sale ?? false,
+        discount_label: f.discount_label ?? null,
+      })) as Flower[];
 
       setFlowers(normalized);
     }
@@ -98,10 +97,10 @@ export default function MyFlowersPage() {
   }, [router]);
 
   const handleChangeField = (
-  id: string,
-  field: "price" | "stock" | "discount_price",
-  value: string
-) => {
+    id: string,
+    field: "price" | "stock" | "sale_price",
+    value: string
+  ) => {
     setFlowers((prev) =>
       prev.map((f) =>
         f.id === id
@@ -128,26 +127,25 @@ export default function MyFlowersPage() {
   };
 
   const handleToggleSale = (id: string, checked: boolean) => {
-  setFlowers((prev) =>
-    prev.map((f) => {
-      if (f.id !== id) return f;
+    setFlowers((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
 
-      const discount_price =
-        checked && (f.discount_price == null || f.discount_price === 0)
-          ? f.price
-          : f.discount_price;
+        const sale_price =
+          checked && (f.sale_price == null || f.sale_price === 0)
+            ? f.price
+            : f.sale_price;
 
-      return {
-        ...f,
-        is_on_sale: checked,
-        discount_price,
-        discount_label:
-          checked && !f.discount_label ? "Знижка" : f.discount_label,
-      };
-    })
-  );
-};
-
+        return {
+          ...f,
+          is_on_sale: checked,
+          sale_price,
+          discount_label:
+            checked && !f.discount_label ? "Знижка" : f.discount_label,
+        };
+      })
+    );
+  };
 
   const handleUpdate = async (flower: Flower) => {
     setSavingId(flower.id);
@@ -155,12 +153,12 @@ export default function MyFlowersPage() {
 
     // якщо знижка вимкнена — очищаємо sale_price та discount_label
     const payload = {
-  price: flower.price,
-  stock: flower.stock,
-  is_on_sale: flower.is_on_sale,
-  discount_price: flower.is_on_sale ? flower.discount_price : null,
-  discount_label: flower.is_on_sale ? flower.discount_label : null,
-};
+      price: flower.price,
+      stock: flower.stock,
+      is_on_sale: flower.is_on_sale,
+      sale_price: flower.is_on_sale ? flower.sale_price : null,
+      discount_label: flower.is_on_sale ? flower.discount_label : null,
+    };
 
     const { error } = await supabase
       .from("flowers")
@@ -341,10 +339,10 @@ export default function MyFlowersPage() {
             const bouquet = isBouquet(flower.type);
 
             const hasValidSale =
-  flower.is_on_sale &&
-  flower.discount_price != null &&
-  flower.discount_price > 0 &&
-  flower.discount_price < flower.price;
+              flower.is_on_sale &&
+              flower.sale_price != null &&
+              flower.sale_price > 0 &&
+              flower.sale_price < flower.price;
 
             return (
               <div
@@ -425,10 +423,9 @@ export default function MyFlowersPage() {
                         <span className="mr-2 text-slate-400 line-through">
                           {flower.price.toLocaleString("uk-UA")} грн
                         </span>
-                       <span className="font-semibold text-emerald-600">
-  {flower.discount_price!.toLocaleString("uk-UA")} грн
-</span>
-
+                        <span className="font-semibold text-emerald-600">
+                          {flower.sale_price!.toLocaleString("uk-UA")} грн
+                        </span>
                       </p>
                     </>
                   ) : (
@@ -492,15 +489,14 @@ export default function MyFlowersPage() {
                         </label>
                         <input
                           className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-sm"
-                          value={flower.discount_price ?? ""}
-onChange={(e) =>
-  handleChangeField(
-    flower.id,
-    "discount_price",
-    e.target.value
-  )
-}
-
+                          value={flower.sale_price ?? ""}
+                          onChange={(e) =>
+                            handleChangeField(
+                              flower.id,
+                              "sale_price",
+                              e.target.value
+                            )
+                          }
                         />
                       </div>
                       <div>
