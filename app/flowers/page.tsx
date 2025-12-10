@@ -15,7 +15,7 @@ type Flower = {
   city: string | null;
   shop_id: string;
 
-  // поля для знижок (оновлено)
+  // поля для знижок
   sale_price: number | null;
   is_on_sale: boolean;
   discount_label: string | null;
@@ -105,25 +105,21 @@ export default function FlowersCatalogPage() {
 
     const { data: flowersData, error: flowersError } = await query;
 
-   if (flowersError) {
-  console.error("SUPABASE ERROR /flowers:", flowersError);
+    if (flowersError) {
+      console.error("SUPABASE ERROR /flowers:", flowersError);
+      setError("Не вдалося завантажити квіти");
+      setLoading(false);
+      return;
+    }
 
-  // ТИМЧАСОВО: показуємо повністю об'єкт помилки як текст
-  try {
-    setError(JSON.stringify(flowersError, null, 2));
-  } catch {
-    // якщо раптом stringify впаде
-    // @ts-ignore
-    setError(String(flowersError.message || flowersError || "Не вдалося завантажити квіти"));
-  }
+    const typedFlowers =
+      ((flowersData as any[]) || []).map((f) => ({
+        ...f,
+        sale_price: f.sale_price ?? null,
+        is_on_sale: f.is_on_sale ?? false,
+        discount_label: f.discount_label ?? null,
+      })) as Flower[];
 
-  setLoading(false);
-  return;
-}
-
-
-
-    const typedFlowers = (flowersData as Flower[]) || [];
     setFlowers(typedFlowers);
 
     // підтягнути профілі магазинів

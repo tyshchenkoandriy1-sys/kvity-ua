@@ -27,7 +27,8 @@ type FlowerRow = {
   city: string | null;
   photo: string | null;
   shop_id: string;
-  profiles: JoinedProfile[] | null;
+  // 🔹 тут був головний баг: це НЕ масив
+  profiles: JoinedProfile | null;
 };
 
 export type ShopOnMap = {
@@ -57,6 +58,7 @@ export default function MapPage() {
   const [loading, setLoading] = useState(true);
   const [flowers, setFlowers] = useState<FlowerRow[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // 0️⃣ Один раз читаємо query-параметри з URL на клієнті
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function MapPage() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError(null);
 
       const { data, error } = await supabase
         .from("flowers")
@@ -99,8 +102,16 @@ export default function MapPage() {
       if (error) {
         console.error("Error loading flowers for map:", error);
         setFlowers([]);
+        setError("Не вдалося завантажити дані для мапи");
       } else {
-        setFlowers((data || []) as FlowerRow[]);
+        // 🔹 тут теж важливо — приводимо до правильного типу
+        const typed = ((data || []) as any[]).map((row) => ({
+          ...row,
+          profiles: row.profiles ?? null,
+        })) as FlowerRow[];
+
+        setFlowers(typed);
+        setError(null);
       }
 
       setLoading(false);
@@ -116,7 +127,7 @@ export default function MapPage() {
     const nameQuery = nameParam.toLowerCase();
 
     return flowers.filter((f) => {
-      const profile = f.profiles?.[0];
+      const profile = f.profiles;
 
       const cityValue = (f.city || profile?.city || "").toLowerCase();
       const typeValue = (f.type || "").toLowerCase();
@@ -135,7 +146,7 @@ export default function MapPage() {
     const map = new Map<string, ShopOnMap>();
 
     for (const f of filteredFlowers) {
-      const profile = f.profiles?.[0];
+      const profile = f.profiles;
       if (!profile) continue;
 
       const existing = map.get(profile.id);
@@ -200,6 +211,11 @@ export default function MapPage() {
             Магазини на мапі
           </h1>
           <p className="mt-1 text-xs text-slate-500">{activeFilterText}</p>
+          {error && (
+            <p className="mt-1 text-xs text-red-500">
+              {error}
+            </p>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
