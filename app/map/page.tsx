@@ -27,8 +27,6 @@ type FlowerRow = {
   city: string | null;
   photo: string | null;
   shop_id: string;
-  // 🔹 тут був головний баг: це НЕ масив
-  profiles: JoinedProfile | null;
 };
 
 export type ShopOnMap = {
@@ -56,9 +54,14 @@ export default function MapPage() {
   const [nameParam, setNameParam] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [flowers, setFlowers] = useState<FlowerRow[]>([]);
-  const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [flowers, setFlowers] = useState<FlowerRow[]>([]);
+  const [profilesMap, setProfilesMap] = useState<Record<string, JoinedProfile>>(
+    {}
+  );
+
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
 
   // 0️⃣ Один раз читаємо query-параметри з URL на клієнті
   useEffect(() => {
@@ -71,47 +74,58 @@ export default function MapPage() {
     setNameParam((params.get("name") || "").trim());
   }, []);
 
-  // 1️⃣ Один раз тягнемо всі квіти з join'ом на profiles
+  // 1️⃣ Тягнемо квіти + окремо профілі магазинів
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      // 1) всі квіти (без join)
+      const { data: flowersData, error: flowersError } = await supabase
         .from("flowers")
-        .select(
-          `
-          id,
-          name,
-          type,
-          price,
-          city,
-          photo,
-          shop_id,
-          profiles:shop_id (
-            id,
-            shop_name,
-            address,
-            city,
-            lat,
-            lng
-          )
-        `
-        );
+        .select("id, name, type, price, city, photo, shop_id");
 
-      if (error) {
-        console.error("Error loading flowers for map:", error);
+      if (flowersError) {
+        console.error("Error loading flowers for map:", flowersError);
         setFlowers([]);
+        setProfilesMap({});
         setError("Не вдалося завантажити дані для мапи");
-      } else {
-        // 🔹 тут теж важливо — приводимо до правильного типу
-        const typed = ((data || []) as any[]).map((row) => ({
-          ...row,
-          profiles: row.profiles ?? null,
-        })) as FlowerRow[];
+        setLoading(false);
+        return;
+      }
 
-        setFlowers(typed);
-        setError(null);
+      const typedFlowers = (flowersData || []) as FlowerRow[];
+      setFlowers(typedFlowers);
+
+      // 2) витягнути всі shop_id і підвантажити профілі
+      const shopIds = Array.from(
+        new Set(
+          typedFlowers
+            .map((f) => f.shop_id)
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      if (shopIds.length === 0) {
+        setProfilesMap({});
+        setLoading(false);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, shop_name, address, city, lat, lng")
+        .in("id", shopIds);
+
+      if (profilesError) {
+        console.warn("Cannot load shop profiles for map:", profilesError);
+        setProfilesMap({});
+      } else {
+        const map: Record<string, JoinedProfile> = {};
+        (profilesData as JoinedProfile[]).forEach((p) => {
+          map[p.id] = p;
+        });
+        setProfilesMap(map);
       }
 
       setLoading(false);
@@ -127,7 +141,7 @@ export default function MapPage() {
     const nameQuery = nameParam.toLowerCase();
 
     return flowers.filter((f) => {
-      const profile = f.profiles;
+      const profile = profilesMap[f.shop_id];
 
       const cityValue = (f.city || profile?.city || "").toLowerCase();
       const typeValue = (f.type || "").toLowerCase();
@@ -139,14 +153,14 @@ export default function MapPage() {
 
       return cityMatch && typeMatch && nameMatch;
     });
-  }, [flowers, cityParam, typeParam, nameParam]);
+  }, [flowers, profilesMap, cityParam, typeParam, nameParam]);
 
   // 3️⃣ Групуємо відфільтровані квіти по магазинах
   const shops: ShopOnMap[] = useMemo(() => {
     const map = new Map<string, ShopOnMap>();
 
     for (const f of filteredFlowers) {
-      const profile = f.profiles;
+      const profile = profilesMap[f.shop_id];
       if (!profile) continue;
 
       const existing = map.get(profile.id);
@@ -173,10 +187,25 @@ export default function MapPage() {
     }
 
     return Array.from(map.values()).sort((a, b) => a.minPrice - b.minPrice);
-  }, [filteredFlowers]);
+  }, [filteredFlowers, profilesMap]);
 
-  // 4️⃣ Вираховуємо центр мапи
+  // 4️⃣ Вираховуємо центр мапи (з урахуванням вибраного магазину)
   const mapCenter: [number, number] = useMemo(() => {
+    // 1) якщо обрали конкретний магазин і є координати — центруємось на ньому
+    const selectedShop =
+      selectedShopId &&
+      shops.find(
+        (s) =>
+          s.shopId === selectedShopId &&
+          s.lat != null &&
+          s.lng != null
+      );
+
+    if (selectedShop && selectedShop.lat && selectedShop.lng) {
+      return [selectedShop.lat, selectedShop.lng];
+    }
+
+    // 2) інакше — перший магазин з координатами
     const shopWithCoords = shops.find(
       (s) => s.lat != null && s.lng != null
     );
@@ -184,13 +213,15 @@ export default function MapPage() {
       return [shopWithCoords.lat, shopWithCoords.lng];
     }
 
+    // 3) якщо передали місто в URL — центруємось по місту
     const key = cityParam.toLowerCase();
     if (key && CITY_COORDS[key]) {
       return CITY_COORDS[key];
     }
 
-    return [49.0, 31.0]; // центр України
-  }, [shops, cityParam]);
+    // 4) дефолт — центр України
+    return [49.0, 31.0];
+  }, [shops, cityParam, selectedShopId]);
 
   // 5️⃣ Текст активних фільтрів
   const activeFilterText =

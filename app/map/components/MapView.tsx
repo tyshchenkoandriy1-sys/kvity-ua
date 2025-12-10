@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  useMap,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -30,7 +28,7 @@ type MapViewProps = {
   onSelectShop: (id: string | null) => void;
 };
 
-// Фіксимо дефолтну іконку Leaflet (щоб не було битих картинок)
+// 🎯 Звичайна іконка (як раніше)
 const defaultIcon = new L.Icon({
   iconUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -42,18 +40,20 @@ const defaultIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// 🔥 Іконка для вибраного магазина
+const selectedIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [30, 49],
+  iconAnchor: [15, 49],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Глобальна дефолтна іконка
 L.Marker.prototype.options.icon = defaultIcon;
-
-// Хелпер, щоб міняти центр мапи коли змінюється `center`
-function MapCenterHelper({ center }: { center: [number, number] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    map.setView(center, 13);
-  }, [center, map]);
-
-  return null;
-}
 
 export default function MapView({
   center,
@@ -63,13 +63,12 @@ export default function MapView({
 }: MapViewProps) {
   return (
     <MapContainer
+      key={`${center[0]}-${center[1]}`} // ⚡ форсимо ремоунт при зміні центру
       center={center}
       zoom={13}
       scrollWheelZoom={true}
       className="h-full w-full"
     >
-      <MapCenterHelper center={center} />
-
       {/* @ts-ignore – іноді TS чудить на TileLayer */}
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -89,6 +88,7 @@ export default function MapView({
             <Marker
               key={shop.shopId}
               position={[shop.lat as number, shop.lng as number]}
+              icon={isSelected ? selectedIcon : defaultIcon}
               eventHandlers={{
                 click: () => {
                   onSelectShop(isSelected ? null : shop.shopId);
