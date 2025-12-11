@@ -14,6 +14,8 @@ type Flower = {
   photo: string | null;
   city: string | null;
   shop_id: string;
+  photo_updated_at: string | null;
+  created_at: string | null;
 
   // поля для знижок
   sale_price: number | null;
@@ -66,21 +68,19 @@ export default function FlowersCatalogPage() {
 
     let query = supabase
       .from("flowers")
-      .select(
-        `
-        id,
-        name,
-        type,
-        price,
-        stock,
-        photo,
-        city,
-        shop_id,
-        sale_price,
-        is_on_sale,
-        discount_label
-      `
-      )
+      .select(`
+  id,
+  name,
+  type,
+  price,
+  stock,
+  photo,
+  city,
+  shop_id,
+  photo_updated_at,
+  created_at
+`)
+
       .ilike("type", "Квіти%") // тільки поштучні квіти
       .order("created_at", { ascending: false });
 
@@ -102,6 +102,16 @@ export default function FlowersCatalogPage() {
         query = query.lte("price", priceNumber);
       }
     }
+const isBlocked = (flower: { photo_updated_at: string | null; created_at: string | null }) => {
+  const lastUpdateStr = flower.photo_updated_at || flower.created_at;
+  if (!lastUpdateStr) return false;
+
+  const lastUpdate = new Date(lastUpdateStr).getTime();
+  const now = Date.now();
+  const diffHours = (now - lastUpdate) / (1000 * 60 * 60);
+
+  return diffHours > 48;
+};
 
     const { data: flowersData, error: flowersError } = await query;
 
@@ -120,7 +130,9 @@ export default function FlowersCatalogPage() {
         discount_label: f.discount_label ?? null,
       })) as Flower[];
 
-    setFlowers(typedFlowers);
+    const visibleFlowers = typedFlowers.filter((f) => !isBlocked(f));
+setFlowers(visibleFlowers);
+
 
     // підтягнути профілі магазинів
     const shopIds = Array.from(

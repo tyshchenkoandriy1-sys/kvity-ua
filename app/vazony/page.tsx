@@ -14,6 +14,9 @@ type Vazony = {
   photo: string | null;
   city: string | null;
   shop_id: string;
+    photo_updated_at: string | null;
+  created_at: string | null;
+
 
   // оновлена модель знижок
   sale_price: number | null;
@@ -49,21 +52,21 @@ export default function VazonyPage() {
     // беремо тільки вазони
     let query = supabase
       .from("flowers")
-      .select(
-        `
-        id,
-        name,
-        type,
-        price,
-        stock,
-        photo,
-        city,
-        shop_id,
-        sale_price,
-        is_on_sale,
-        discount_label
-      `
-      )
+      .select(`
+  id,
+  name,
+  type,
+  price,
+  stock,
+  photo,
+  city,
+  shop_id,
+  discount_price,
+  discount_label,
+  photo_updated_at,
+  created_at
+`)
+
       .ilike("type", "Вазони%")
       .order("created_at", { ascending: false });
 
@@ -81,6 +84,16 @@ export default function VazonyPage() {
         query = query.lte("price", priceNumber);
       }
     }
+const isBlocked = (item: { photo_updated_at: string | null; created_at: string | null }) => {
+  const lastUpdateStr = item.photo_updated_at || item.created_at;
+  if (!lastUpdateStr) return false;
+
+  const lastUpdate = new Date(lastUpdateStr).getTime();
+  const now = Date.now();
+  const diffHours = (now - lastUpdate) / (1000 * 60 * 60);
+
+  return diffHours > 48;
+};
 
     const { data, error: vazonyError } = await query;
 
@@ -98,7 +111,9 @@ export default function VazonyPage() {
       discount_label: f.discount_label ?? null,
     })) as Vazony[];
 
-    setVazony(typed);
+    const visible = typed.filter((f) => !isBlocked(f));
+setVazony(visible);
+
 
     // підтягуємо магазини
     const shopIds = Array.from(

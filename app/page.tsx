@@ -407,7 +407,7 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
               </ul>
               <div className="pt-3">
                 <Link
-                  href="/register"
+                  href="/partner"
                   className="inline-flex items-center rounded-xl bg-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600"
                 >
                   Стати партнером kvity.ua

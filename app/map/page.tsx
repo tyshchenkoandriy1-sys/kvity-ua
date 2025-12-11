@@ -27,6 +27,8 @@ type FlowerRow = {
   city: string | null;
   photo: string | null;
   shop_id: string;
+  photo_updated_at: string | null;
+  created_at: string | null;
 };
 
 export type ShopOnMap = {
@@ -47,6 +49,18 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "івано-франківськ": [48.9226, 24.7111],
 };
 
+// прострочене оголошення (фото не оновлювалось > 48 год)
+const isBlocked = (flower: { photo_updated_at: string | null; created_at: string | null }) => {
+  const lastUpdateStr = flower.photo_updated_at || flower.created_at;
+  if (!lastUpdateStr) return false;
+
+  const lastUpdate = new Date(lastUpdateStr).getTime();
+  const now = Date.now();
+  const diffHours = (now - lastUpdate) / (1000 * 60 * 60);
+
+  return diffHours > 48;
+};
+
 export default function MapPage() {
   // 🔹 параметри з урла (читаємо на клієнті)
   const [cityParam, setCityParam] = useState("");
@@ -57,10 +71,7 @@ export default function MapPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [flowers, setFlowers] = useState<FlowerRow[]>([]);
-  const [profilesMap, setProfilesMap] = useState<Record<string, JoinedProfile>>(
-    {}
-  );
-
+  const [profilesMap, setProfilesMap] = useState<Record<string, JoinedProfile>>({});
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
 
   // 🔹 для автопрокрутки списку магазинів
@@ -86,7 +97,7 @@ export default function MapPage() {
       // 1) всі квіти (без join)
       const { data: flowersData, error: flowersError } = await supabase
         .from("flowers")
-        .select("id, name, type, price, city, photo, shop_id");
+        .select("id, name, type, price, city, photo, shop_id, photo_updated_at, created_at");
 
       if (flowersError) {
         console.error("Error loading flowers for map:", flowersError);
@@ -137,13 +148,16 @@ export default function MapPage() {
     load();
   }, []);
 
-  // 2️⃣ Фільтруємо квіти на клієнті по місту + назві + типу
+  // 2️⃣ Фільтруємо квіти на клієнті + ховаємо прострочені (>48 год)
   const filteredFlowers = useMemo(() => {
     const cityQuery = cityParam.toLowerCase();
     const typeQuery = typeParam.toLowerCase();
     const nameQuery = nameParam.toLowerCase();
 
     return flowers.filter((f) => {
+      // не показуємо прострочені
+      if (isBlocked(f)) return false;
+
       const profile = profilesMap[f.shop_id];
 
       const cityValue = (f.city || profile?.city || "").toLowerCase();
@@ -192,7 +206,16 @@ export default function MapPage() {
     return Array.from(map.values()).sort((a, b) => a.minPrice - b.minPrice);
   }, [filteredFlowers, profilesMap]);
 
-  // 4️⃣ Центр мапи (з урахуванням вибраного магазину)
+  // 4️⃣ Квіти вибраного магазину (для блоку під мапою)
+  const selectedShopFlowers = useMemo(
+    () =>
+      selectedShopId
+        ? filteredFlowers.filter((f) => f.shop_id === selectedShopId)
+        : [],
+    [filteredFlowers, selectedShopId]
+  );
+
+  // 5️⃣ Центр мапи (з урахуванням вибраного магазину)
   const mapCenter: [number, number] = useMemo(() => {
     const selectedShop =
       selectedShopId &&
@@ -222,7 +245,7 @@ export default function MapPage() {
     return [49.0, 31.0];
   }, [shops, cityParam, selectedShopId]);
 
-  // 5️⃣ Текст активних фільтрів
+  // 6️⃣ Текст активних фільтрів
   const activeFilterText =
     [
       cityParam && `Місто: ${cityParam}`,
@@ -231,15 +254,6 @@ export default function MapPage() {
     ]
       .filter(Boolean)
       .join(" · ") || "Усі міста, типи та назви";
-
-  // 6️⃣ Квіти вибраного магазину
-  const selectedShopFlowers = useMemo(
-    () =>
-      selectedShopId
-        ? filteredFlowers.filter((f) => f.shop_id === selectedShopId)
-        : [],
-    [filteredFlowers, selectedShopId]
-  );
 
   const selectedShop = useMemo(
     () =>
