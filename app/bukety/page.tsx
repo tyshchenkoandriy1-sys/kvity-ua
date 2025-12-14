@@ -57,6 +57,7 @@ export default function BuketyCatalogPage() {
     let query = supabase
       .from("flowers")
       .select("id, name, type, price, stock, photo, city, shop_id")
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
 
     if (cityFilter) {

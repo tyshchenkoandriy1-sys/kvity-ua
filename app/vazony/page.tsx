@@ -66,6 +66,7 @@ export default function VazonyPage() {
   photo_updated_at,
   created_at
 `)
+.eq("is_active", true)
 
       .ilike("type", "Вазони%")
       .order("created_at", { ascending: false });

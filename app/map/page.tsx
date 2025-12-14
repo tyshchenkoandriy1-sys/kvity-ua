@@ -29,6 +29,7 @@ type FlowerRow = {
   shop_id: string;
   photo_updated_at: string | null;
   created_at: string | null;
+  is_active: boolean | null;
 };
 
 export type ShopOnMap = {
@@ -107,7 +108,9 @@ export default function MapPage() {
       // 1) всі квіти (без join)
       const { data: flowersData, error: flowersError } = await supabase
         .from("flowers")
-        .select("id, name, type, price, city, photo, shop_id, photo_updated_at, created_at");
+        .select("id, name, type, price, city, photo, shop_id, photo_updated_at, created_at")
+        .eq("is_active", true);;
+        
 
       if (flowersError) {
         console.error("Error loading flowers for map:", flowersError);
@@ -165,6 +168,7 @@ export default function MapPage() {
     const nameQuery = nameParam.toLowerCase();
 
     return flowers.filter((f) => {
+          if (f.is_active === false) return false; // ✅
       // не показуємо прострочені
       if (isBlocked(f)) return false;
 

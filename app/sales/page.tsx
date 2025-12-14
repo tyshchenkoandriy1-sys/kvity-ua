@@ -84,6 +84,7 @@ export default function SalesPage() {
         created_at
       `
       )
+      .eq("is_active", true)
       .eq("is_on_sale", true)
       .not("sale_price", "is", null)
       .order("created_at", { ascending: false });

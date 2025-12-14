@@ -252,7 +252,7 @@ export default function OrderPage() {
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
              text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+             outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="+380..."
@@ -269,7 +269,7 @@ export default function OrderPage() {
                   max={flower.stock}
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
              text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+             outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                 />

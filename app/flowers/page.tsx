@@ -80,6 +80,8 @@ export default function FlowersCatalogPage() {
   photo_updated_at,
   created_at
 `)
+.eq("is_active", true)
+
 
       .ilike("type", "Квіти%") // тільки поштучні квіти
       .order("created_at", { ascending: false });
