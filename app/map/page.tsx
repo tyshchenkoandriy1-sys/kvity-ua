@@ -79,14 +79,24 @@ export default function MapPage() {
 
   // 0️⃣ Один раз читаємо query-параметри з URL на клієнті
   useEffect(() => {
-    if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return;
 
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
 
-    setCityParam((params.get("city") || "").trim());
-    setTypeParam((params.get("type") || "").trim());
-    setNameParam((params.get("name") || "").trim());
-  }, []);
+  const cityFromUrl = (params.get("city") || "").trim();
+  const typeFromUrl = (params.get("type") || "").trim();
+  const nameFromUrl = (params.get("name") || "").trim();
+  const highlightShopId = (params.get("highlightShopId") || "").trim();
+
+  setCityParam(cityFromUrl);
+  setTypeParam(typeFromUrl);
+  setNameParam(nameFromUrl);
+
+  if (highlightShopId) {
+    setSelectedShopId(highlightShopId);
+  }
+}, []);
+
 
   // 1️⃣ Тягнемо квіти + окремо профілі магазинів
   useEffect(() => {

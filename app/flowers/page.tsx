@@ -277,30 +277,35 @@ setFlowers(visibleFlowers);
                 : "Знижка";
 
             const handleShowOnMap = () => {
-              const city = shop?.city || flower.city || "";
-              const address = shop?.address || "";
-              const label = shop?.shop_name || flower.name;
+  const city = shop?.city || flower.city || "";
 
-              // для поштучних квітів — завжди наша внутрішня мапа
-              if (!isBouquetType(flower.type)) {
-                const params = new URLSearchParams();
-                if (city) params.set("city", city);
-                if (flower.type) params.set("type", flower.type);
-                if (flower.name) params.set("name", flower.name);
+  // для поштучних квітів — наша внутрішня мапа
+  if (!isBouquetType(flower.type)) {
+    const params = new URLSearchParams();
 
-                router.push(`/map?${params.toString()}`);
-                return;
-              }
+    // фільтруємо по місту + назві
+    if (city) params.set("city", city);
+    if (flower.name) params.set("name", flower.name);
 
-              // fallback на випадок, якщо сюди випадково потрапить букет
-              const query = encodeURIComponent(
-                [city, address, label].filter(Boolean).join(", ")
-              );
-              window.open(
-                `https://www.google.com/maps/search/?api=1&query=${query}`,
-                "_blank"
-              );
-            };
+    // id магазину, який треба підсвітити
+    params.set("highlightShopId", flower.shop_id);
+
+    router.push(`/map?${params.toString()}`);
+    return;
+  }
+
+  // fallback на випадок, якщо сюди випадково потрапить букет
+  const address = shop?.address || "";
+  const label = shop?.shop_name || flower.name;
+  const query = encodeURIComponent(
+    [city, address, label].filter(Boolean).join(", ")
+  );
+  window.open(
+    `https://www.google.com/maps/search/?api=1&query=${query}`,
+    "_blank"
+  );
+};
+
 
             return (
               <article
