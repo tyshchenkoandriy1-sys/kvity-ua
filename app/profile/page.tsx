@@ -228,7 +228,9 @@ export default function ProfilePage() {
               Назва магазину
             </label>
             <input
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={shopName}
               onChange={(e) => setShopName(e.target.value)}
               placeholder="Наприклад: Квіти біля дому"
@@ -240,7 +242,9 @@ export default function ProfilePage() {
               Номер телефону
             </label>
             <input
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder="+380..."
@@ -252,7 +256,9 @@ export default function ProfilePage() {
     Місто
   </label>
   <select
-    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200 bg-white"
+    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
     value={city}
     onChange={(e) => setCity(e.target.value)}
   >
@@ -271,7 +277,9 @@ export default function ProfilePage() {
               Адреса
             </label>
             <input
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Вулиця, будинок..."

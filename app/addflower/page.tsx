@@ -162,7 +162,9 @@ export default function AddFlowerPage() {
         <div>
           <label className="block text-sm mb-1">Назва *</label>
           <input
-            className="w-full p-2 border rounded-lg text-sm"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Наприклад, троянда червона"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -172,7 +174,8 @@ export default function AddFlowerPage() {
         <div>
           <label className="block text-sm mb-1">Категорія *</label>
           <select
-            className="w-full p-2 border rounded-lg text-sm bg-white"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+           text-slate-800 outline-none focus:border-pink-500"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -190,7 +193,9 @@ export default function AddFlowerPage() {
             Детальний тип (необовʼязково)
           </label>
           <input
-            className="w-full p-2 border rounded-lg text-sm"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="піоновидна, кущова, мікс тощо"
             value={type}
             onChange={(e) => setType(e.target.value)}
@@ -215,7 +220,9 @@ export default function AddFlowerPage() {
                 Квіти в складі (через кому)
               </label>
               <input
-                className="w-full p-2 border rounded-lg text-sm"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                 placeholder="піони, троянди, евкаліпт"
                 value={compositionFlowers}
                 onChange={(e) => setCompositionFlowers(e.target.value)}
@@ -230,7 +237,9 @@ export default function AddFlowerPage() {
         <div>
           <label className="block text-sm mb-1">Ціна за шт *</label>
           <input
-            className="w-full p-2 border rounded-lg text-sm"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Наприклад, 150"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
@@ -240,7 +249,9 @@ export default function AddFlowerPage() {
         <div>
           <label className="block text-sm mb-1">Кількість на складі</label>
           <input
-            className="w-full p-2 border rounded-lg text-sm"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="0"
             value={stock}
             onChange={(e) => setStock(e.target.value)}

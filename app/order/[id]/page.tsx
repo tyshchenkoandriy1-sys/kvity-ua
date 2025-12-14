@@ -236,7 +236,9 @@ export default function OrderPage() {
                   Імʼя *
                 </label>
                 <input
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="Як до тебе звертатись?"
@@ -248,7 +250,9 @@ export default function OrderPage() {
                   Телефон *
                 </label>
                 <input
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="+380..."
@@ -263,7 +267,9 @@ export default function OrderPage() {
                   type="number"
                   min={1}
                   max={flower.stock}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                 />

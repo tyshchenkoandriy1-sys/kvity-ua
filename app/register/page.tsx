@@ -102,7 +102,9 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Email"
             type="email"
             value={email}
@@ -110,7 +112,9 @@ export default function RegisterPage() {
           />
 
           <input
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Пароль"
             type="password"
             value={password}
@@ -118,7 +122,9 @@ export default function RegisterPage() {
           />
 
           <input
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Назва магазину"
             value={shopName}
             onChange={(e) => setShopName(e.target.value)}
@@ -139,14 +145,18 @@ export default function RegisterPage() {
 
 
           <input
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Контакт (телеграм/телефон)"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
           />
 
           <input
-            className="w-full border rounded-lg px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Адреса (вулиця, будинок)"
             value={address}
             onChange={(e) => setAddress(e.target.value)}

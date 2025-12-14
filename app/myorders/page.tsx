@@ -190,7 +190,8 @@ export default function MyOrdersPage() {
                     handleStatusChange(order.id, e.target.value)
                   }
                   disabled={updatingId === order.id}
-                  className="border rounded-lg px-2 py-1 text-sm"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 outline-none focus:border-blue-500"
                 >
                   <option value="new">Новий</option>
                   <option value="in_progress">В обробці</option>

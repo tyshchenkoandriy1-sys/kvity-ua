@@ -211,26 +211,34 @@ setFlowers(visibleFlowers);
         <section className="mb-10 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
           <div className="flex flex-col gap-3 md:flex-row">
             <input
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               placeholder="Місто (наприклад, Київ)"
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
             />
             <input
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               placeholder="Назва (наприклад, троянда)"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
             />
             <input
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+              className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               placeholder="Тип (піоновидні, кущові...)"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             />
             <div className="flex gap-3 md:w-56">
               <input
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-pink-400 focus:bg-white focus:ring-2 focus:ring-pink-100"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-800 placeholder-slate-500
+             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                 placeholder="Макс. ціна"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
