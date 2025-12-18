@@ -106,21 +106,9 @@ export default function OrderPage() {
       return;
     }
 
-    // 2) ПРОБУЄМО оновити stock/sold_count, але не ламаємо форму, якщо RLS забороняє
-    const newStock = flower.stock - qty;
-    const newSold = (flower.sold_count ?? 0) + qty;
-
-    const { error: updateError } = await supabase
-      .from("flowers")
-      .update({
-        stock: newStock,
-        sold_count: newSold,
-      })
-      .eq("id", flower.id);
-
-    if (!updateError) {
-      setFlower({ ...flower, stock: newStock, sold_count: newSold });
-    }
+    // ✅ ВАЖЛИВО:
+    // Тут БІЛЬШЕ НІЧОГО НЕ ОНОВЛЮЄМО у flowers (stock/sold_count).
+    // Stock змінюється ТІЛЬКИ коли продавець змінює статус у "Мої замовлення".
 
     setSuccess("Замовлення успішно оформлено! 🌸 Ми скоро з вами звʼяжемось.");
     setSubmitting(false);
@@ -185,14 +173,19 @@ export default function OrderPage() {
 
             {flower.type && (
               <p className="mt-2 text-sm text-slate-500">
-                Тип: <span className="font-medium text-slate-700">{flower.type}</span>
+                Тип:{" "}
+                <span className="font-medium text-slate-700">
+                  {flower.type}
+                </span>
               </p>
             )}
 
             {flower.city && (
               <p className="mt-1 text-sm text-slate-500">
                 Місто:{" "}
-                <span className="font-medium text-slate-700">{flower.city}</span>
+                <span className="font-medium text-slate-700">
+                  {flower.city}
+                </span>
               </p>
             )}
 
@@ -237,8 +230,8 @@ export default function OrderPage() {
                 </label>
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                  text-slate-800 placeholder-slate-500
+                  outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="Як до тебе звертатись?"
@@ -251,8 +244,8 @@ export default function OrderPage() {
                 </label>
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  text-slate-800 placeholder-slate-500
+                  outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
                   placeholder="+380..."
@@ -268,8 +261,8 @@ export default function OrderPage() {
                   min={1}
                   max={flower.stock}
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  text-slate-800 placeholder-slate-500
+                  outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                 />
@@ -300,9 +293,7 @@ export default function OrderPage() {
                     : "bg-pink-500 text-white hover:bg-pink-600"
                 }`}
               >
-                {submitting
-                  ? "Відправляємо замовлення..."
-                  : "Підтвердити замовлення"}
+                {submitting ? "Відправляємо замовлення..." : "Підтвердити замовлення"}
               </button>
             </form>
 

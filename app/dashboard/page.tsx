@@ -18,10 +18,58 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [doneOrdersCount, setDoneOrdersCount] = useState<number>(0);
+  const [stats, setStats] = useState({
+  doneOrders: 0,
+  inProgressOrders: 0,
+  cancelledOrders: 0,
+  totalItemsDone: 0,
+  totalRevenueDone: 0,
+});
+
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadStats = async (shopId: string) => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("status, quantity, flowers:flower_id ( price )")
+    .eq("shop_id", shopId);
+
+  if (error || !data) {
+    console.error("Stats error:", error);
+    return;
+  }
+
+  let doneOrders = 0;
+  let inProgressOrders = 0;
+  let cancelledOrders = 0;
+  let totalItemsDone = 0;
+  let totalRevenueDone = 0;
+
+  for (const o of data as any[]) {
+    const qty = Number(o.quantity ?? 0);
+    const price = Number(o.flowers?.price ?? 0);
+
+    if (o.status === "done") {
+      doneOrders += 1;
+      totalItemsDone += qty;
+      totalRevenueDone += qty * price;
+    } else if (o.status === "in_progress") {
+      inProgressOrders += 1;
+    } else if (o.status === "cancelled") {
+      cancelledOrders += 1;
+    }
+  }
+
+  setStats({
+    doneOrders,
+    inProgressOrders,
+    cancelledOrders,
+    totalItemsDone,
+    totalRevenueDone,
+  });
+};
 
   useEffect(() => {
     const load = async () => {
@@ -60,15 +108,8 @@ export default function DashboardPage() {
       setProfile(typedProfile);
 
       // 3. Кількість виконаних замовлень для цього магазину
-      const { count, error: countError } = await supabase
-        .from("orders")
-        .select("id", { count: "exact", head: true })
-        .eq("shop_id", typedProfile.id)
-        .eq("status", "done");
+      await loadStats(typedProfile.id);
 
-      if (!countError && typeof count === "number") {
-        setDoneOrdersCount(count);
-      }
 
       setLoading(false);
     };
@@ -82,6 +123,13 @@ export default function DashboardPage() {
     setLogoutLoading(false);
     router.push("/login");
   };
+type PeriodKey = "today" | "7d" | "30d";
+
+const [period, setPeriod] = useState<PeriodKey>("7d");
+
+const [topFlowers, setTopFlowers] = useState<
+  { flowerId: string; name: string; type: string | null; soldQty: number; revenue: number }[]
+>([]);
 
   if (loading) {
     return (
@@ -181,24 +229,48 @@ export default function DashboardPage() {
           </div>
 
           {/* Статус + статистика */}
-          <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div
-              className={`inline-flex items-center rounded-2xl ${statusBg} px-4 py-2 text-xs font-semibold ${statusColor}`}
-            >
-              Статус: {statusLabel}
-            </div>
+          {/* Статус + статистика */}
+<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+  <div
+    className={`inline-flex items-center rounded-2xl ${statusBg} px-4 py-2 text-xs font-semibold ${statusColor}`}
+  >
+    Статус: {statusLabel}
+  </div>
 
-            <div className="flex flex-col items-start gap-1 text-sm text-slate-700 md:items-end">
-              <p className="font-semibold">
-                Виконаних замовлень:{" "}
-                <span className="text-pink-600">{doneOrdersCount}</span>
-              </p>
-              <p className="text-xs text-slate-500">
-                Ці дані рахуються за всіма замовленнями зі статусом{" "}
-                <span className="font-semibold">“done”</span>.
-              </p>
-            </div>
-          </div>
+  <div className="flex flex-col items-start gap-1 text-sm text-slate-700 md:items-end">
+    <p className="font-semibold">
+      Виконаних замовлень:{" "}
+      <span className="text-pink-600">{stats.doneOrders}</span>
+    </p>
+
+    <p className="text-xs text-slate-500">
+      В роботі:{" "}
+      <span className="font-semibold text-slate-900">{stats.inProgressOrders}</span>{" "}
+      · Скасовано:{" "}
+      <span className="font-semibold text-red-600">{stats.cancelledOrders}</span>
+    </p>
+
+    <p className="text-xs text-slate-500">
+      Продано (done):{" "}
+      <span className="font-semibold text-slate-900">{stats.totalItemsDone} шт</span>
+    </p>
+
+    <p className="text-xs text-slate-500">
+      Оборот (done):{" "}
+      <span className="font-semibold text-emerald-600">
+        {stats.totalRevenueDone.toLocaleString("uk-UA")} грн
+      </span>
+    </p>
+
+    <p className="text-[11px] text-slate-400">
+      Рахується за замовленнями зі статусом “done”.
+    </p>
+  </div>
+</div>
+
+
+   
+
         </section>
 
         {/* Навігаційні блоки */}

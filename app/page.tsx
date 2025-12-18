@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
-
 const FLOWER_TYPES = ["Квіти", "Вазони", "Букети", "Композиції"];
 
 type Flower = {
@@ -18,6 +17,14 @@ type Flower = {
   city: string;
   photo: string | null;
   sold_count: number;
+
+  // ✅ додано
+  stock: number;
+  is_active: boolean;
+
+  // ✅ додано (завдання)
+  created_at: string | null;
+  photo_updated_at: string | null;
 
   shop_name: string;
   address: string;
@@ -32,17 +39,23 @@ export default function HomePage() {
   const router = useRouter();
 
   const [city, setCity] = useState<string>("");
-const [type, setType] = useState<string>("");
-const [flowerName, setFlowerName] = useState<string>("");   // 🔹 нове
-const [flowerColor, setFlowerColor] = useState<string>(""); // 🔹 нове
-const [loading, setLoading] = useState(true);
-const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
+  const [type, setType] = useState<string>("");
+  const [flowerName, setFlowerName] = useState<string>("");
+  const [flowerColor, setFlowerColor] = useState<string>(""); // 🔹 нове
+  const [loading, setLoading] = useState(true);
+  const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
 
   // підвантажуємо «каталог на головній»
   useEffect(() => {
     const loadFeatured = async () => {
       setLoading(true);
 
+      // ✅ дата 48 год назад (завдання)
+      const cutoffIso = new Date(
+        Date.now() - 48 * 60 * 60 * 1000
+      ).toISOString();
+
+      // ✅ оновлений запит + фільтри is_active + stock + 48 год (завдання)
       const { data, error } = await supabase
         .from("flowers")
         .select(
@@ -54,6 +67,10 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
           city,
           photo,
           sold_count,
+          stock,
+          is_active,
+          created_at,
+          photo_updated_at,
           is_on_sale,
           sale_price,
           discount_label,
@@ -63,10 +80,24 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
           )
         `
         )
+        .eq("is_active", true)
+        .gt("stock", 0)
+        // ✅ не показувати якщо не оновлювали більше 48 год:
+        .or(
+          `photo_updated_at.gte.${cutoffIso},and(photo_updated_at.is.null,created_at.gte.${cutoffIso})`
+        )
         .order("created_at", { ascending: false })
         .limit(9);
 
-      if (!error && data) {
+      // ✅ FIX: якщо помилка — очищаємо список, щоб не показувати старі дані
+      if (error) {
+        console.error(error);
+        setFeaturedFlowers([]);
+        setLoading(false);
+        return;
+      }
+
+      if (data) {
         const mapped: Flower[] = data.map((f: any) => ({
           id: f.id,
           name: f.name,
@@ -75,6 +106,15 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
           city: f.city ?? "",
           photo: f.photo ?? null,
           sold_count: f.sold_count ?? 0,
+
+          // ✅ додано
+          stock: f.stock ?? 0,
+          is_active: f.is_active ?? true,
+
+          // ✅ додано (завдання)
+          created_at: f.created_at ?? null,
+          photo_updated_at: f.photo_updated_at ?? null,
+
           shop_name: f.profiles?.shop_name ?? "Квітковий магазин",
           address: f.profiles?.address ?? "",
 
@@ -82,7 +122,10 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
           sale_price: f.sale_price ?? null,
           discount_label: f.discount_label ?? null,
         }));
+
         setFeaturedFlowers(mapped);
+      } else {
+        setFeaturedFlowers([]);
       }
 
       setLoading(false);
@@ -112,8 +155,8 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
     const params = new URLSearchParams();
     if (city) params.set("city", city);
     if (type) params.set("type", type);
-    if (flowerName) params.set("name", flowerName);     // 🔹 назва квітки
-  if (flowerColor) params.set("color", flowerColor);  // 🔹 колір квітки
+    if (flowerName) params.set("name", flowerName);
+    if (flowerColor) params.set("color", flowerColor);
 
     router.push(`/flowers?${params.toString()}`);
   };
@@ -152,84 +195,82 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
             </div>
 
             {/* Швидкий пошук */}
-           <form
-  onSubmit={handleSearchSubmit}
-  className="mt-6 flex flex-col gap-4 rounded-2xl bg-slate-50 p-6 shadow-md sm:flex-row sm:items-end"
->
-  {/* Місто */}
-  <div className="flex-1">
-    <label className="mb-1 block text-sm font-medium text-slate-600">
-      Місто
-    </label>
-    <select
-      value={city}
-      onChange={(e) => setCity(e.target.value)}
-      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
-    >
-      <option value="">Будь-яке місто</option>
-      {CITIES.map((c) => (
-        <option key={c} value={c}>
-          {c}
-        </option>
-      ))}
-    </select>
-  </div>
+            <form
+              onSubmit={handleSearchSubmit}
+              className="mt-6 flex flex-col gap-4 rounded-2xl bg-slate-50 p-6 shadow-md sm:flex-row sm:items-end"
+            >
+              {/* Місто */}
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-slate-600">
+                  Місто
+                </label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
+                >
+                  <option value="">Будь-яке місто</option>
+                  {CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-  {/* Тип */}
-  <div className="flex-1">
-    <label className="mb-1 block text-sm font-medium text-slate-600">
-      Тип
-    </label>
-    <select
-      value={type}
-      onChange={(e) => setType(e.target.value)}
-      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
-    >
-      <option value="">Будь-що</option>
-      {FLOWER_TYPES.map((t) => (
-        <option key={t} value={t}>
-          {t}
-        </option>
-      ))}
-    </select>
-  </div>
+              {/* Тип */}
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-slate-600">
+                  Тип
+                </label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
+                >
+                  <option value="">Будь-що</option>
+                  {FLOWER_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-  {/* Назва квітки */}
-  <div className="flex-1">
-    <label className="mb-1 block text-sm font-medium text-slate-600">
-      Назва квітки
-    </label>
-    <input
-      value={flowerName}
-      onChange={(e) => setFlowerName(e.target.value)}
-      placeholder="Напр., троянда, тюльпан..."
-      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
-    />
-  </div>
+              {/* Назва квітки */}
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-slate-600">
+                  Назва квітки
+                </label>
+                <input
+                  value={flowerName}
+                  onChange={(e) => setFlowerName(e.target.value)}
+                  placeholder="Напр., троянда, тюльпан..."
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
+                />
+              </div>
 
-  {/* Колір */}
-  <div className="flex-1">
-    <label className="mb-1 block text-sm font-medium text-slate-600">
-      Колір
-    </label>
-    <input
-      value={flowerColor}
-      onChange={(e) => setFlowerColor(e.target.value)}
-      placeholder="Напр., червоний, білий..."
-      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
-    />
-  </div>
+              {/* Колір */}
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-slate-600">
+                  Колір
+                </label>
+                <input
+                  value={flowerColor}
+                  onChange={(e) => setFlowerColor(e.target.value)}
+                  placeholder="Напр., червоний, білий..."
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100"
+                />
+              </div>
 
-  {/* Кнопка */}
-  <button
-    type="submit"
-    className="w-full rounded-xl bg-slate-900 px-6 py-3 text-base font-semibold text-white shadow-md transition hover:bg-slate-800 sm:w-auto"
-  >
-    Пошук
-  </button>
-</form>
-
-
+              {/* Кнопка */}
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-slate-900 px-6 py-3 text-base font-semibold text-white shadow-md transition hover:bg-slate-800 sm:w-auto"
+              >
+                Пошук
+              </button>
+            </form>
           </div>
 
           {/* Декоративний блок / превʼю */}
@@ -263,9 +304,7 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
                       <p className="text-xs font-semibold text-slate-800">
                         Троянди червоні
                       </p>
-                      <p className="text-[11px] text-slate-500">
-                        від 90 грн / шт
-                      </p>
+                      <p className="text-[11px] text-slate-500">від 90 грн / шт</p>
                     </div>
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                       Знижка
@@ -427,10 +466,7 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
               </ul>
               <p className="mt-4 text-xs text-slate-400">
                 Після реєстрації твій магазин потрапляє в статус
-                <span className="font-semibold text-emerald-300">
-                  {" "}
-                  pending
-                </span>{" "}
+                <span className="font-semibold text-emerald-300"> pending</span>{" "}
                 — ми підтверджуємо його, і ти стаєш{" "}
                 <span className="font-semibold text-emerald-300">seller</span>.
               </p>
@@ -444,9 +480,7 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
         <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
           <div className="grid gap-6 md:grid-cols-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                kvity.ua
-              </h3>
+              <h3 className="text-sm font-semibold text-slate-900">kvity.ua</h3>
               <p className="mt-2 text-xs text-slate-500">
                 Маркетплейс локальних квіткових магазинів. Проєкт junior
                 розробника на Next.js + Supabase.
@@ -480,9 +514,7 @@ const [featuredFlowers, setFeaturedFlowers] = useState<Flower[]>([]);
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Контакти
-              </h3>
+              <h3 className="text-sm font-semibold text-slate-900">Контакти</h3>
               <ul className="mt-2 space-y-1 text-xs text-slate-500">
                 <li>
                   Email: <span className="font-mono">you@example.com</span>

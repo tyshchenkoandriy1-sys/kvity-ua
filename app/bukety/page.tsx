@@ -13,6 +13,8 @@ type Flower = {
   photo: string | null;
   city: string | null;
   shop_id: string;
+  // 🟢 активність оголошення
+  is_active: boolean;
 };
 
 type ShopProfile = {

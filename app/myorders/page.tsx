@@ -29,6 +29,9 @@ export default function MyOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // 1) Додаємо state tab
+  const [tab, setTab] = useState<"active" | "done">("active");
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -63,11 +66,20 @@ export default function MyOrdersPage() {
 
     setProfile(profileData);
 
-    const { data, error } = await supabase
+    // 2) Міняємо запит orders залежно від tab
+    let query = supabase
       .from("orders")
       .select("*, flowers ( name, photo, price )")
       .eq("shop_id", session.user.id)
       .order("created_at", { ascending: false });
+
+    if (tab === "active") {
+      query = query.in("status", ["new", "in_progress"]);
+    } else {
+      query = query.in("status", ["done", "cancelled"]);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error(error);
@@ -79,31 +91,109 @@ export default function MyOrdersPage() {
     setLoading(false);
   };
 
+  // 3) Перезавантажувати список при зміні tab
   useEffect(() => {
     load();
-  }, [router]);
+  }, [router, tab]);
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleStatusChange = async (id: string, nextStatus: string) => {
     setUpdatingId(id);
     setError(null);
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id);
+    try {
+      const { data: orderRow, error: orderErr } = await supabase
+        .from("orders")
+        .select("id, status, quantity, flower_id")
+        .eq("id", id)
+        .single();
 
-    if (error) {
-      console.error(error);
-      setError("Не вдалося оновити статус");
+      if (orderErr || !orderRow) {
+        console.error(orderErr);
+        setError("Не вдалося знайти замовлення");
+        setUpdatingId(null);
+        return;
+      }
+
+      const prevStatus = orderRow.status;
+      const qty = Number(orderRow.quantity ?? 0);
+      const flowerId = orderRow.flower_id as string;
+
+      if (prevStatus === nextStatus) {
+        setUpdatingId(null);
+        return;
+      }
+
+      const { error: updOrderErr } = await supabase
+        .from("orders")
+        .update({ status: nextStatus })
+        .eq("id", id);
+
+      if (updOrderErr) {
+        console.error(updOrderErr);
+        setError("Не вдалося оновити статус");
+        setUpdatingId(null);
+        return;
+      }
+
+      const becomesReservedOrDone =
+        (nextStatus === "in_progress" || nextStatus === "done") &&
+        !(prevStatus === "in_progress" || prevStatus === "done");
+
+      const becomesCancelledFromReservedOrDone =
+        nextStatus === "cancelled" &&
+        (prevStatus === "in_progress" || prevStatus === "done");
+
+      if (becomesReservedOrDone || becomesCancelledFromReservedOrDone) {
+        const { data: flowerRow, error: flowerErr } = await supabase
+          .from("flowers")
+          .select("id, stock, sold_count, is_active")
+          .eq("id", flowerId)
+          .single();
+
+        if (flowerErr || !flowerRow) {
+          console.error(flowerErr);
+          setError("Статус оновлено, але не вдалося оновити склад (stock).");
+        } else {
+          const currentStock = Number(flowerRow.stock ?? 0);
+          const currentSold = Number(flowerRow.sold_count ?? 0);
+
+          let newStock = currentStock;
+          let newSold = currentSold;
+
+          if (becomesReservedOrDone) {
+            newStock = Math.max(0, currentStock - qty);
+            newSold = currentSold + qty;
+          }
+
+          if (becomesCancelledFromReservedOrDone) {
+            newStock = currentStock + qty;
+            newSold = Math.max(0, currentSold - qty);
+          }
+
+          const newIsActive = newStock > 0;
+
+          const { error: updFlowerErr } = await supabase
+            .from("flowers")
+            .update({
+              stock: newStock,
+              sold_count: newSold,
+              is_active: newIsActive,
+            })
+            .eq("id", flowerId);
+
+          if (updFlowerErr) {
+            console.error(updFlowerErr);
+            setError("Статус оновлено, але не вдалося оновити квітку (stock).");
+          }
+        }
+      }
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, status: nextStatus } : o))
+      );
+    } finally {
       setUpdatingId(null);
-      return;
     }
-
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status } : o))
-    );
-
-    setUpdatingId(null);
   };
 
   if (loading) {
@@ -126,18 +216,40 @@ export default function MyOrdersPage() {
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto py-10 px-4">
         <h1 className="text-3xl font-bold mb-4">Мої замовлення</h1>
+
+        {/* 4) Додаємо кнопки в UI */}
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => setTab("active")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold border ${
+              tab === "active"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200"
+            }`}
+          >
+            Активні
+          </button>
+
+          <button
+            onClick={() => setTab("done")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold border ${
+              tab === "done"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200"
+            }`}
+          >
+            Виконані
+          </button>
+        </div>
+
         <p className="text-slate-600 mb-6">
           Магазин: <span className="font-semibold">{profile.shop_name}</span>
         </p>
 
-        {error && (
-          <p className="text-red-500 mb-4">{error}</p>
-        )}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
 
         {!orders.length && (
-          <p className="text-slate-600">
-            Поки що замовлень немає.
-          </p>
+          <p className="text-slate-600">Поки що замовлень немає.</p>
         )}
 
         <div className="space-y-4">
@@ -186,12 +298,9 @@ export default function MyOrdersPage() {
               <div className="w-full md:w-40 flex flex-col gap-2">
                 <select
                   value={order.status}
-                  onChange={(e) =>
-                    handleStatusChange(order.id, e.target.value)
-                  }
+                  onChange={(e) => handleStatusChange(order.id, e.target.value)}
                   disabled={updatingId === order.id}
-                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 outline-none focus:border-blue-500"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-500"
                 >
                   <option value="new">Новий</option>
                   <option value="in_progress">В обробці</option>

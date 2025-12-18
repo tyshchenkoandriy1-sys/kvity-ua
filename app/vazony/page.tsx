@@ -16,6 +16,8 @@ type Vazony = {
   shop_id: string;
     photo_updated_at: string | null;
   created_at: string | null;
+  // 🟢 активність оголошення
+  is_active: boolean;
 
 
   // оновлена модель знижок

@@ -17,6 +17,9 @@ type Flower = {
   photo_updated_at: string | null;
   created_at: string | null;
 
+  // 🟢 активність оголошення
+  is_active: boolean;
+
   // поля для знижок (оновлено)
   sale_price: number | null;
   is_on_sale: boolean;
@@ -84,6 +87,7 @@ export default function MyFlowersPage() {
         sale_price: f.sale_price ?? null,
         is_on_sale: f.is_on_sale ?? false,
         discount_label: f.discount_label ?? null,
+        is_active: f.is_active ?? true,
       })) as Flower[];
 
       setFlowers(normalized);
@@ -155,6 +159,10 @@ export default function MyFlowersPage() {
     const payload = {
       price: flower.price,
       stock: flower.stock,
+
+      // якщо продавець поставив stock > 0 — логічно зробити оголошення активним
+      is_active: flower.stock > 0,
+
       is_on_sale: flower.is_on_sale,
       sale_price: flower.is_on_sale ? flower.sale_price : null,
       discount_label: flower.is_on_sale ? flower.discount_label : null,
@@ -168,28 +176,48 @@ export default function MyFlowersPage() {
     if (error) {
       console.error(error);
       setError("Не вдалося оновити квітку");
+      setSavingId(null);
+      return;
     }
+
+    setFlowers((prev) =>
+      prev.map((f) =>
+        f.id === flower.id ? { ...f, ...payload } : f
+      )
+    );
 
     setSavingId(null);
   };
 
-  const handleDelete = async (id: string) => {
-    const ok = confirm("Точно видалити це оголошення?");
+  // ✅ Замість видалення — ховаємо оголошення (залишається в "Мої квіти")
+  const handleHide = async (id: string) => {
+    const ok = confirm(
+      "Сховати оголошення для покупців? (Воно залишиться у вас в «Мої квіти»)"
+    );
     if (!ok) return;
 
     setDeletingId(id);
     setError(null);
 
-    const { error } = await supabase.from("flowers").delete().eq("id", id);
+    const { error } = await supabase
+      .from("flowers")
+      .update({
+        stock: 0,
+        is_active: false,
+      })
+      .eq("id", id);
 
     if (error) {
       console.error(error);
-      setError("Не вдалося видалити квітку");
+      setError("Не вдалося сховати оголошення");
       setDeletingId(null);
       return;
     }
 
-    setFlowers((prev) => prev.filter((f) => f.id !== id));
+    setFlowers((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, stock: 0, is_active: false } : f))
+    );
+
     setDeletingId(null);
   };
 
@@ -279,8 +307,7 @@ export default function MyFlowersPage() {
     return diffHours > 48;
   };
 
-  const totalSold =
-    flowers.reduce((sum, f) => sum + (f.sold_count ?? 0), 0) || 0;
+  const totalSold = flowers.reduce((sum, f) => sum + (f.sold_count ?? 0), 0) || 0;
 
   if (loading) {
     return (
@@ -314,8 +341,7 @@ export default function MyFlowersPage() {
           Магазин: <span className="font-semibold">{profile.shop_name}</span>
         </p>
         <p className="text-slate-600 mb-6">
-          Усього продано:{" "}
-          <span className="font-semibold">{totalSold}</span> шт.
+          Усього продано: <span className="font-semibold">{totalSold}</span> шт.
         </p>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -344,6 +370,8 @@ export default function MyFlowersPage() {
               flower.sale_price > 0 &&
               flower.sale_price < flower.price;
 
+            const outOfStock = flower.stock <= 0 || flower.is_active === false;
+
             return (
               <div
                 key={flower.id}
@@ -366,9 +394,7 @@ export default function MyFlowersPage() {
                   )}
 
                   <label className="absolute bottom-2 right-2 inline-flex cursor-pointer rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white">
-                    {photoUploadingId === flower.id
-                      ? "Завантаження..."
-                      : "Змінити фото"}
+                    {photoUploadingId === flower.id ? "Завантаження..." : "Змінити фото"}
                     <input
                       type="file"
                       accept="image/*"
@@ -393,15 +419,17 @@ export default function MyFlowersPage() {
                   </span>
                 )}
 
+                {outOfStock && (
+                  <span className="inline-flex w-fit rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 mb-1">
+                    Немає в наявності / Продано
+                  </span>
+                )}
+
                 {flower.type && (
-                  <p className="text-sm text-slate-500 mb-1">
-                    Тип: {flower.type}
-                  </p>
+                  <p className="text-sm text-slate-500 mb-1">Тип: {flower.type}</p>
                 )}
                 {flower.city && (
-                  <p className="text-sm text-slate-500 mb-1">
-                    Місто: {flower.city}
-                  </p>
+                  <p className="text-sm text-slate-500 mb-1">Місто: {flower.city}</p>
                 )}
                 <p className="text-sm text-slate-500 mb-2">
                   Продано: {flower.sold_count ?? 0} шт.
@@ -409,8 +437,7 @@ export default function MyFlowersPage() {
 
                 {blocked && (
                   <p className="mb-2 text-xs font-semibold text-red-500">
-                    Оголошення заблоковано. Онови фото — воно повинно
-                    змінюватися щонайменше раз на 48 годин.
+                    Оголошення заблоковано. Онови фото — воно повинно змінюватися щонайменше раз на 48 годин.
                   </p>
                 )}
 
@@ -430,18 +457,12 @@ export default function MyFlowersPage() {
                     </>
                   ) : (
                     <>
-                      <label className="text-sm text-slate-500">
-                        Ціна, грн за шт:
-                      </label>
+                      <label className="text-sm text-slate-500">Ціна, грн за шт:</label>
                       <input
                         className="w-full border rounded-lg px-2 py-1 mb-2 text-sm"
                         value={flower.price}
                         onChange={(e) =>
-                          handleChangeField(
-                            flower.id,
-                            "price",
-                            e.target.value
-                          )
+                          handleChangeField(flower.id, "price", e.target.value)
                         }
                       />
                     </>
@@ -450,18 +471,12 @@ export default function MyFlowersPage() {
 
                 {!hasValidSale && (
                   <>
-                    <label className="text-sm text-slate-500">
-                      Кількість на складі:
-                    </label>
+                    <label className="text-sm text-slate-500">Кількість на складі:</label>
                     <input
                       className="w-full border rounded-lg px-2 py-1 mb-3 text-sm"
                       value={flower.stock}
                       onChange={(e) =>
-                        handleChangeField(
-                          flower.id,
-                          "stock",
-                          e.target.value
-                        )
+                        handleChangeField(flower.id, "stock", e.target.value)
                       }
                     />
                   </>
@@ -474,9 +489,7 @@ export default function MyFlowersPage() {
                       type="checkbox"
                       className="h-4 w-4"
                       checked={flower.is_on_sale}
-                      onChange={(e) =>
-                        handleToggleSale(flower.id, e.target.checked)
-                      }
+                      onChange={(e) => handleToggleSale(flower.id, e.target.checked)}
                     />
                     Знижка / акція для цього товару
                   </label>
@@ -491,27 +504,18 @@ export default function MyFlowersPage() {
                           className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-sm"
                           value={flower.sale_price ?? ""}
                           onChange={(e) =>
-                            handleChangeField(
-                              flower.id,
-                              "sale_price",
-                              e.target.value
-                            )
+                            handleChangeField(flower.id, "sale_price", e.target.value)
                           }
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">
-                          Текст бейджа знижки
-                        </label>
+                        <label className="text-xs text-slate-500">Текст бейджа знижки</label>
                         <input
                           className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-sm"
                           placeholder="Наприклад: Знижка, -20%, Акція"
                           value={flower.discount_label ?? ""}
                           onChange={(e) =>
-                            handleChangeDiscountLabel(
-                              flower.id,
-                              e.target.value
-                            )
+                            handleChangeDiscountLabel(flower.id, e.target.value)
                           }
                         />
                       </div>
@@ -527,12 +531,13 @@ export default function MyFlowersPage() {
                   >
                     {savingId === flower.id ? "Збереження..." : "Зберегти"}
                   </button>
+
                   <button
-                    onClick={() => handleDelete(flower.id)}
+                    onClick={() => handleHide(flower.id)}
                     disabled={deletingId === flower.id}
                     className="flex-1 py-1 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 disabled:bg-red-300"
                   >
-                    {deletingId === flower.id ? "Видалення..." : "Видалити"}
+                    {deletingId === flower.id ? "Ховаємо..." : "Сховати"}
                   </button>
                 </div>
               </div>
