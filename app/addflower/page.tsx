@@ -227,7 +227,7 @@ export default function AddFlowerPage() {
                 value={compositionFlowers}
                 onChange={(e) => setCompositionFlowers(e.target.value)}
               />
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[11px] text-slate-600">
                 Це поле допоможе покупцям знаходити букети за складом.
               </p>
             </div>

@@ -333,7 +333,7 @@ setFlowers(visibleFlowers);
                       className="h-44 w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-44 w-full items-center justify-center bg-slate-50 text-sm text-slate-400">
+                    <div className="flex h-44 w-full items-center justify-center bg-slate-50 text-sm text-slate-600">
                       Без фото
                     </div>
                   )}
@@ -377,7 +377,7 @@ setFlowers(visibleFlowers);
                   {/* Блок з ціною + знижкою */}
                   <div className="mt-3 flex items-baseline gap-2">
                     {hasDiscount && (
-                      <p className="text-xs text-slate-400 line-through">
+                      <p className="text-xs text-slate-600 line-through">
                         {flower.price.toLocaleString("uk-UA")} грн
                       </p>
                     )}
@@ -398,7 +398,7 @@ setFlowers(visibleFlowers);
                       className={`w-full rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
                         flower.stock > 0
                           ? "bg-pink-500 text-white hover:bg-pink-600"
-                          : "cursor-not-allowed bg-slate-200 text-slate-400"
+                          : "cursor-not-allowed bg-slate-200 text-slate-600"
                       }`}
                     >
                       {hasDiscount ? "Замовити зі знижкою" : "Замовити"}

@@ -33,7 +33,7 @@ export default function PartnerPage() {
           </button>
         </div>
 
-        <p className="mt-4 text-[11px] text-slate-400">
+        <p className="mt-4 text-[11px] text-slate-600">
           Після підтвердження вашого магазину адміністратором ви отримаєте
           доступ до кабінету продавця, статистики та управління оголошеннями.
         </p>

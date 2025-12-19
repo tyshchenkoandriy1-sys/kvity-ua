@@ -464,7 +464,7 @@ export default function HomePage() {
                 <li>✅ Статуси: нове, в роботі, виконано, скасовано</li>
                 <li>✅ Статистика: скільки продано (sold_count)</li>
               </ul>
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-600">
                 Після реєстрації твій магазин потрапляє в статус
                 <span className="font-semibold text-emerald-300"> pending</span>{" "}
                 — ми підтверджуємо його, і ти стаєш{" "}
@@ -538,7 +538,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-[11px] text-slate-400">
+          <p className="mt-6 text-center text-[11px] text-slate-600">
             © {new Date().getFullYear()} kvity.ua · зроблено як pet-проєкт.
           </p>
         </div>
@@ -590,7 +590,7 @@ function FlowerCard({ flower }: { flower: Flower }) {
             className="h-40 w-full object-cover"
           />
         ) : (
-          <div className="flex h-40 w-full items-center justify-center text-xs text-slate-400">
+          <div className="flex h-40 w-full items-center justify-center text-xs text-slate-600">
             Без фото
           </div>
         )}
@@ -616,7 +616,7 @@ function FlowerCard({ flower }: { flower: Flower }) {
 
       <div className="mt-2 flex items-baseline gap-2">
         {hasSale && (
-          <p className="text-xs text-slate-400 line-through">
+          <p className="text-xs text-slate-600 line-through">
             {flower.price.toLocaleString("uk-UA")} грн
           </p>
         )}

@@ -400,7 +400,7 @@ export default function MapPage() {
                           <p className="mt-1 text-xs text-slate-500">
                             {shop.city} · {shop.address}
                           </p>
-                          <p className="mt-1 text-[11px] text-slate-400">
+                          <p className="mt-1 text-[11px] text-slate-600">
                             Варіантів: {shop.flowersCount}
                           </p>
                         </button>
@@ -469,7 +469,7 @@ export default function MapPage() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-600">
                         Без фото
                       </div>
                     )}

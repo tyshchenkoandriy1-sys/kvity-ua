@@ -224,7 +224,7 @@ export default function BuketyCatalogPage() {
                     className="mb-3 h-40 w-full rounded-2xl object-cover"
                   />
                 ) : (
-                  <div className="mb-3 flex h-40 w-full items-center justify-center rounded-2xl bg-slate-50 text-xs text-slate-400">
+                  <div className="mb-3 flex h-40 w-full items-center justify-center rounded-2xl bg-slate-50 text-xs text-slate-600">
                     Без фото
                   </div>
                 )}
@@ -272,7 +272,7 @@ export default function BuketyCatalogPage() {
                     disabled={isOutOfStock}
                     className={`w-full rounded-xl px-3 py-2 text-xs font-semibold shadow-sm transition ${
                       isOutOfStock
-                        ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                        ? "cursor-not-allowed bg-slate-200 text-slate-600"
                         : "bg-pink-500 text-white hover:bg-pink-600"
                     }`}
                   >

@@ -265,7 +265,7 @@ export default function MyOrdersPage() {
                   className="w-28 h-28 object-cover rounded-xl"
                 />
               ) : (
-                <div className="w-28 h-28 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 text-xs">
+                <div className="w-28 h-28 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 text-xs">
                   Без фото
                 </div>
               )}
@@ -274,23 +274,23 @@ export default function MyOrdersPage() {
                 <p className="font-semibold mb-1">
                   {order.flowers?.name} · {order.quantity} шт.
                 </p>
-                <p className="text-sm text-slate-500 mb-1">
+                <p className="text-sm text-slate-700 mb-1">
                   Покупець: {order.buyer_name}
                 </p>
-                <p className="text-sm text-slate-500 mb-1">
+                <p className="text-sm text-slate-700 mb-1">
                   Телефон: {order.buyer_phone}
                 </p>
                 {order.buyer_email && (
-                  <p className="text-sm text-slate-500 mb-1">
+                  <p className="text-sm text-slate-700 mb-1">
                     Email: {order.buyer_email}
                   </p>
                 )}
                 {order.buyer_comment && (
-                  <p className="text-sm text-slate-500 mb-1">
+                  <p className="text-sm text-slate-700 mb-1">
                     Коментар: {order.buyer_comment}
                   </p>
                 )}
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-600 mt-1">
                   Створено: {new Date(order.created_at).toLocaleString()}
                 </p>
               </div>

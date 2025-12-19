@@ -192,7 +192,7 @@ const [topFlowers, setTopFlowers] = useState<
                 className="h-20 w-20 rounded-2xl object-cover md:h-24 md:w-24"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 text-sm text-slate-400 md:h-24 md:w-24">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 text-sm text-slate-600 md:h-24 md:w-24">
                 Без фото
               </div>
             )}
@@ -262,7 +262,7 @@ const [topFlowers, setTopFlowers] = useState<
       </span>
     </p>
 
-    <p className="text-[11px] text-slate-400">
+    <p className="text-[11px] text-slate-600">
       Рахується за замовленнями зі статусом “done”.
     </p>
   </div>

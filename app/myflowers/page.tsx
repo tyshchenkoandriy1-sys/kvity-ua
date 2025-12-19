@@ -388,7 +388,7 @@ export default function MyFlowersPage() {
                       className="h-32 w-full object-cover rounded-lg"
                     />
                   ) : (
-                    <div className="h-32 w-full bg-slate-100 flex items-center justify-center text-slate-400 text-sm rounded-lg">
+                    <div className="h-32 w-full bg-slate-100 flex items-center justify-center text-slate-600 text-sm rounded-lg">
                       Без фото
                     </div>
                   )}
@@ -431,7 +431,7 @@ export default function MyFlowersPage() {
                 {flower.city && (
                   <p className="text-sm text-slate-500 mb-1">Місто: {flower.city}</p>
                 )}
-                <p className="text-sm text-slate-500 mb-2">
+                <p className="text-sm text-slate-700 mb-2">
                   Продано: {flower.sold_count ?? 0} шт.
                 </p>
 
@@ -447,7 +447,7 @@ export default function MyFlowersPage() {
                     <>
                       <p className="text-sm text-slate-500">Ціна, грн за шт:</p>
                       <p className="text-sm">
-                        <span className="mr-2 text-slate-400 line-through">
+                        <span className="mr-2 text-slate-600 line-through">
                           {flower.price.toLocaleString("uk-UA")} грн
                         </span>
                         <span className="font-semibold text-emerald-600">

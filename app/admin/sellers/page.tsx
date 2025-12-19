@@ -193,7 +193,7 @@ export default function AdminSellersPage() {
                       </button>
                     </div>
 
-                    <p className="mt-3 text-[11px] text-slate-400 break-all">
+                    <p className="mt-3 text-[11px] text-slate-600 break-all">
                       id: {p.id}
                     </p>
                   </div>
