@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
+type Role = "pending" | "seller" | "buyer" | "admin" | "rejected";
+
 type Profile = {
   id: string;
-  role: "pending" | "seller" | "buyer";
+  role: Role;
   shop_name: string | null;
   city: string | null;
   contact: string | null;
@@ -19,57 +21,57 @@ export default function DashboardPage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState({
-  doneOrders: 0,
-  inProgressOrders: 0,
-  cancelledOrders: 0,
-  totalItemsDone: 0,
-  totalRevenueDone: 0,
-});
+    doneOrders: 0,
+    inProgressOrders: 0,
+    cancelledOrders: 0,
+    totalItemsDone: 0,
+    totalRevenueDone: 0,
+  });
 
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadStats = async (shopId: string) => {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("status, quantity, flowers:flower_id ( price )")
-    .eq("shop_id", shopId);
+    const { data, error } = await supabase
+      .from("orders")
+      .select("status, quantity, flowers:flower_id ( price )")
+      .eq("shop_id", shopId);
 
-  if (error || !data) {
-    console.error("Stats error:", error);
-    return;
-  }
-
-  let doneOrders = 0;
-  let inProgressOrders = 0;
-  let cancelledOrders = 0;
-  let totalItemsDone = 0;
-  let totalRevenueDone = 0;
-
-  for (const o of data as any[]) {
-    const qty = Number(o.quantity ?? 0);
-    const price = Number(o.flowers?.price ?? 0);
-
-    if (o.status === "done") {
-      doneOrders += 1;
-      totalItemsDone += qty;
-      totalRevenueDone += qty * price;
-    } else if (o.status === "in_progress") {
-      inProgressOrders += 1;
-    } else if (o.status === "cancelled") {
-      cancelledOrders += 1;
+    if (error || !data) {
+      console.error("Stats error:", error);
+      return;
     }
-  }
 
-  setStats({
-    doneOrders,
-    inProgressOrders,
-    cancelledOrders,
-    totalItemsDone,
-    totalRevenueDone,
-  });
-};
+    let doneOrders = 0;
+    let inProgressOrders = 0;
+    let cancelledOrders = 0;
+    let totalItemsDone = 0;
+    let totalRevenueDone = 0;
+
+    for (const o of data as any[]) {
+      const qty = Number(o.quantity ?? 0);
+      const price = Number(o.flowers?.price ?? 0);
+
+      if (o.status === "done") {
+        doneOrders += 1;
+        totalItemsDone += qty;
+        totalRevenueDone += qty * price;
+      } else if (o.status === "in_progress") {
+        inProgressOrders += 1;
+      } else if (o.status === "cancelled") {
+        cancelledOrders += 1;
+      }
+    }
+
+    setStats({
+      doneOrders,
+      inProgressOrders,
+      cancelledOrders,
+      totalItemsDone,
+      totalRevenueDone,
+    });
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -83,14 +85,14 @@ export default function DashboardPage() {
       } = await supabase.auth.getSession();
 
       if (sessionError || !session?.user) {
-        setError("Потрібно увійти в акаунт продавця.");
+        setError("Потрібно увійти в акаунт.");
         setLoading(false);
         return;
       }
 
       const userId = session.user.id;
 
-      // 2. Профіль магазину
+      // 2. Профіль
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("id, role, shop_name, city, contact, address, avatar_url")
@@ -99,7 +101,7 @@ export default function DashboardPage() {
 
       if (profileError || !profileData) {
         console.error(profileError);
-        setError("Не вдалося завантажити профіль магазину.");
+        setError("Не вдалося завантажити профіль.");
         setLoading(false);
         return;
       }
@@ -107,9 +109,18 @@ export default function DashboardPage() {
       const typedProfile = profileData as Profile;
       setProfile(typedProfile);
 
-      // 3. Кількість виконаних замовлень для цього магазину
-      await loadStats(typedProfile.id);
-
+      // Статистика по замовленням рахується тільки для seller (бо це shop_id)
+      if (typedProfile.role === "seller") {
+        await loadStats(typedProfile.id);
+      } else {
+        setStats({
+          doneOrders: 0,
+          inProgressOrders: 0,
+          cancelledOrders: 0,
+          totalItemsDone: 0,
+          totalRevenueDone: 0,
+        });
+      }
 
       setLoading(false);
     };
@@ -123,13 +134,6 @@ export default function DashboardPage() {
     setLogoutLoading(false);
     router.push("/login");
   };
-type PeriodKey = "today" | "7d" | "30d";
-
-const [period, setPeriod] = useState<PeriodKey>("7d");
-
-const [topFlowers, setTopFlowers] = useState<
-  { flowerId: string; name: string; type: string | null; soldQty: number; revenue: number }[]
->([]);
 
   if (loading) {
     return (
@@ -143,24 +147,46 @@ const [topFlowers, setTopFlowers] = useState<
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <p className="text-sm text-red-500">
-          {error ?? "Профіль продавця не знайдено."}
+          {error ?? "Профіль не знайдено."}
         </p>
       </main>
     );
   }
 
   const isSeller = profile.role === "seller";
-  const statusLabel = isSeller
-    ? "підтверджений продавець 🌸"
-    : "очікує підтвердження (pending)";
+  const isAdmin = profile.role === "admin";
+  const isPending = profile.role === "pending";
 
-  const statusColor = isSeller ? "text-emerald-600" : "text-amber-600";
-  const statusBg = isSeller ? "bg-emerald-50" : "bg-amber-50";
+  const statusLabel = isAdmin
+    ? "адміністратор 🔧"
+    : isSeller
+    ? "підтверджений продавець 🌸"
+    : isPending
+    ? "очікує підтвердження (pending)"
+    : "користувач";
+
+  const statusColor = isAdmin
+    ? "text-slate-900"
+    : isSeller
+    ? "text-emerald-600"
+    : "text-amber-600";
+
+  const statusBg = isAdmin
+    ? "bg-slate-100"
+    : isSeller
+    ? "bg-emerald-50"
+    : "bg-amber-50";
+
+  // seller-only кнопки (як ти й хотів по доступах)
+  const sellerOnlyDisabled = !isSeller;
+  const sellerOnlyHint = isPending
+    ? "Доступно після підтвердження магазину."
+    : "Доступно тільки продавцю.";
 
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 md:py-10">
-        {/* Заголовок + кнопка виходу */}
+        {/* Заголовок + кнопки */}
         <header className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
@@ -171,13 +197,25 @@ const [topFlowers, setTopFlowers] = useState<
             </p>
           </div>
 
-          <button
-            onClick={handleLogout}
-            disabled={logoutLoading}
-            className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            {logoutLoading ? "Вихід..." : "Вийти"}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* ✅ КНОПКА АДМІНКИ — тільки для admin */}
+            {isAdmin && (
+              <button
+                onClick={() => router.push("/admin")}
+                className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
+              >
+                Адмінка
+              </button>
+            )}
+
+            <button
+              onClick={handleLogout}
+              disabled={logoutLoading}
+              className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
+            >
+              {logoutLoading ? "Вихід..." : "Вийти"}
+            </button>
+          </div>
         </header>
 
         {/* Основна картка магазину */}
@@ -229,48 +267,49 @@ const [topFlowers, setTopFlowers] = useState<
           </div>
 
           {/* Статус + статистика */}
-          {/* Статус + статистика */}
-<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-  <div
-    className={`inline-flex items-center rounded-2xl ${statusBg} px-4 py-2 text-xs font-semibold ${statusColor}`}
-  >
-    Статус: {statusLabel}
-  </div>
+          <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div
+              className={`inline-flex items-center rounded-2xl ${statusBg} px-4 py-2 text-xs font-semibold ${statusColor}`}
+            >
+              Статус: {statusLabel}
+            </div>
 
-  <div className="flex flex-col items-start gap-1 text-sm text-slate-700 md:items-end">
-    <p className="font-semibold">
-      Виконаних замовлень:{" "}
-      <span className="text-pink-600">{stats.doneOrders}</span>
-    </p>
+            <div className="flex flex-col items-start gap-1 text-sm text-slate-700 md:items-end">
+              <p className="font-semibold">
+                Виконаних замовлень:{" "}
+                <span className="text-pink-600">{stats.doneOrders}</span>
+              </p>
 
-    <p className="text-xs text-slate-500">
-      В роботі:{" "}
-      <span className="font-semibold text-slate-900">{stats.inProgressOrders}</span>{" "}
-      · Скасовано:{" "}
-      <span className="font-semibold text-red-600">{stats.cancelledOrders}</span>
-    </p>
+              <p className="text-xs text-slate-500">
+                В роботі:{" "}
+                <span className="font-semibold text-slate-900">
+                  {stats.inProgressOrders}
+                </span>{" "}
+                · Скасовано:{" "}
+                <span className="font-semibold text-red-600">
+                  {stats.cancelledOrders}
+                </span>
+              </p>
 
-    <p className="text-xs text-slate-500">
-      Продано (done):{" "}
-      <span className="font-semibold text-slate-900">{stats.totalItemsDone} шт</span>
-    </p>
+              <p className="text-xs text-slate-500">
+                Продано (done):{" "}
+                <span className="font-semibold text-slate-900">
+                  {stats.totalItemsDone} шт
+                </span>
+              </p>
 
-    <p className="text-xs text-slate-500">
-      Оборот (done):{" "}
-      <span className="font-semibold text-emerald-600">
-        {stats.totalRevenueDone.toLocaleString("uk-UA")} грн
-      </span>
-    </p>
+              <p className="text-xs text-slate-500">
+                Оборот (done):{" "}
+                <span className="font-semibold text-emerald-600">
+                  {stats.totalRevenueDone.toLocaleString("uk-UA")} грн
+                </span>
+              </p>
 
-    <p className="text-[11px] text-slate-600">
-      Рахується за замовленнями зі статусом “done”.
-    </p>
-  </div>
-</div>
-
-
-   
-
+              <p className="text-[11px] text-slate-600">
+                Рахується за замовленнями зі статусом “done”.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* Навігаційні блоки */}
@@ -289,31 +328,55 @@ const [topFlowers, setTopFlowers] = useState<
 
           <button
             onClick={() => router.push("/myflowers")}
-            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+            disabled={sellerOnlyDisabled}
+            className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
+              ${
+                sellerOnlyDisabled
+                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+              }`}
           >
-            <span className="font-semibold text-slate-900">Мої квіти</span>
-            <span className="mt-1 text-xs text-slate-500">
-              Перегляд, редагування та видалення оголошень.
+            <span className="font-semibold">Мої квіти</span>
+            <span className="mt-1 text-xs">
+              {sellerOnlyDisabled
+                ? sellerOnlyHint
+                : "Перегляд, редагування та видалення оголошень."}
             </span>
           </button>
 
           <button
             onClick={() => router.push("/addflower")}
-            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+            disabled={sellerOnlyDisabled}
+            className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
+              ${
+                sellerOnlyDisabled
+                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+              }`}
           >
-            <span className="font-semibold text-slate-900">Додати квітку</span>
-            <span className="mt-1 text-xs text-slate-500">
-              Створення нового оголошення з фото та ціною.
+            <span className="font-semibold">Додати квітку</span>
+            <span className="mt-1 text-xs">
+              {sellerOnlyDisabled
+                ? sellerOnlyHint
+                : "Створення нового оголошення з фото та ціною."}
             </span>
           </button>
 
           <button
             onClick={() => router.push("/myorders")}
-            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+            disabled={sellerOnlyDisabled}
+            className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
+              ${
+                sellerOnlyDisabled
+                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+              }`}
           >
-            <span className="font-semibold text-slate-900">Мої замовлення</span>
-            <span className="mt-1 text-xs text-slate-500">
-              Перегляд замовлень, контакти покупців, зміна статусу.
+            <span className="font-semibold">Мої замовлення</span>
+            <span className="mt-1 text-xs">
+              {sellerOnlyDisabled
+                ? sellerOnlyHint
+                : "Перегляд замовлень, контакти покупців, зміна статусу."}
             </span>
           </button>
         </section>
