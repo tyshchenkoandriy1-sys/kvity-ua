@@ -334,15 +334,27 @@ export default function MyFlowersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold mb-2">Мої квіти</h1>
-        <p className="text-slate-600 mb-1">
-          Магазин: <span className="font-semibold">{profile.shop_name}</span>
-        </p>
-        <p className="text-slate-600 mb-6">
-          Усього продано: <span className="font-semibold">{totalSold}</span> шт.
-        </p>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+  <div className="max-w-5xl mx-auto py-10 px-4">
+    <h1 className="text-3xl font-bold mb-2 text-slate-900">
+      Мої квіти
+    </h1>
+
+    <p className="text-slate-800 mb-1">
+      Магазин:{" "}
+      <span className="font-semibold text-slate-900">
+        {profile.shop_name}
+      </span>
+    </p>
+
+    <p className="text-slate-800 mb-6">
+      Усього продано:{" "}
+      <span className="font-semibold text-slate-900">
+        {totalSold}
+      </span>{" "}
+      шт.
+    </p>
+
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 

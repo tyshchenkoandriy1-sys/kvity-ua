@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [shopName, setShopName] = useState("");
   const [city, setCity] = useState("");
   const [contact, setContact] = useState("");
-  const [address, setAddress] = useState(""); // 👈 НОВЕ
+  const [address, setAddress] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -34,15 +34,12 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    // На всяк випадок розлогінимось
     await supabase.auth.signOut();
 
-    // 1) Створюємо користувача в Auth
-    const { data: signUpData, error: signUpError } =
-      await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-      });
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password,
+    });
 
     if (signUpError) {
       setError("Не вдалося створити користувача: " + signUpError.message);
@@ -57,14 +54,13 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2) Створюємо профіль у public.profiles з адресою
     const { error: profileError } = await supabase.from("profiles").insert({
       id: user.id,
       role: "pending",
       shop_name: shopName,
       city,
       contact,
-      address, // 👈 ЗБЕРІГАЄМО АДРЕСУ
+      address,
     });
 
     if (profileError) {
@@ -85,17 +81,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-4">Реєстрація магазину</h1>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-slate-900">
+        <h1 className="text-2xl font-bold text-slate-900 mb-4">
+          Реєстрація магазину
+        </h1>
 
         {error && (
-          <p className="mb-3 text-sm text-red-500 whitespace-pre-line">
+          <p className="mb-3 text-sm font-medium text-red-700 whitespace-pre-line">
             {error}
           </p>
         )}
         {success && (
-          <p className="mb-3 text-sm text-emerald-600 whitespace-pre-line">
+          <p className="mb-3 text-sm font-medium text-emerald-700 whitespace-pre-line">
             {success}
           </p>
         )}
@@ -103,7 +101,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-500
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Email"
             type="email"
@@ -113,7 +111,7 @@ export default function RegisterPage() {
 
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-500
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Пароль"
             type="password"
@@ -123,7 +121,7 @@ export default function RegisterPage() {
 
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-500
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Назва магазину"
             value={shopName}
@@ -131,22 +129,24 @@ export default function RegisterPage() {
           />
 
           <select
-  className="w-full border rounded-lg px-3 py-2 bg-white"
-  value={city}
-  onChange={(e) => setCity(e.target.value)}
->
-  <option value="">Оберіть місто</option>
-  {CITIES.map((c) => (
-    <option key={c} value={c}>
-      {c}
-    </option>
-  ))}
-</select>
-
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-900 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          >
+            <option value="" className="text-slate-700">
+              Оберіть місто
+            </option>
+            {CITIES.map((c) => (
+              <option key={c} value={c} className="text-slate-900">
+                {c}
+              </option>
+            ))}
+          </select>
 
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-500
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Контакт (телеграм/телефон)"
             value={contact}
@@ -155,7 +155,7 @@ export default function RegisterPage() {
 
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-500
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Адреса (вулиця, будинок)"
             value={address}
@@ -165,10 +165,16 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:bg-slate-400"
+            className="w-full py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:bg-slate-500"
           >
             {loading ? "Реєстрація..." : "Зареєструвати магазин"}
           </button>
+
+          <p className="text-xs text-slate-700">
+            Після реєстрації магазин буде у статусі{" "}
+            <span className="font-semibold text-slate-900">pending</span> до
+            підтвердження.
+          </p>
         </form>
       </div>
     </div>

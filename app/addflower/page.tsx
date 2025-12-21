@@ -14,27 +14,23 @@ export default function AddFlowerPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [name, setName] = useState("");
-  // група товару
   const [category, setCategory] = useState("");
-  // детальний тип усередині групи
   const [type, setType] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("0");
   const [file, setFile] = useState<File | null>(null);
 
-  // НОВЕ: опис і склад для букетів/вазонів/композицій
   const [description, setDescription] = useState("");
   const [compositionFlowers, setCompositionFlowers] = useState("");
 
-  const isComplexCategory = ["Букети", "Вазони", "Композиції"].includes(
-    category
-  );
+  const isComplexCategory = ["Букети", "Вазони", "Композиції"].includes(category);
 
   useEffect(() => {
     const loadProfile = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
       if (!session) {
         router.push("/login");
         return;
@@ -71,27 +67,24 @@ export default function AddFlowerPage() {
     }
 
     if (!category) {
-      setError("Оберіть категорію (квіти, вазони, букети або композиції)");
+      setError("Оберіть категорію");
       return;
     }
 
-    // для букетів/вазонів/композицій бажано мати опис
     if (isComplexCategory && !description.trim()) {
-      setError("Для букетів, вазонів та композицій додайте, будь ласка, опис.");
+      setError("Для букетів, вазонів та композицій потрібен опис");
       return;
     }
 
     let photoUrl: string | null = null;
 
-    // 📸 Якщо файл є — завантажуємо
     if (file && profile) {
       const fileName = `${profile.id}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage
-        .from("flowers") // bucket
+        .from("flowers")
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error(uploadError);
         setError("Помилка завантаження фото");
         return;
       }
@@ -103,11 +96,9 @@ export default function AddFlowerPage() {
       photoUrl = urlData.publicUrl;
     }
 
-    // комбінований тип: "Букети · піоновидна"
     const combinedType =
       category && type ? `${category} · ${type}` : category || type || null;
 
-    // 📌 Додаємо товар
     const { error: insertError } = await supabase.from("flowers").insert({
       shop_id: profile.id,
       name,
@@ -115,15 +106,12 @@ export default function AddFlowerPage() {
       price: Number(price),
       stock: Number(stock),
       photo: photoUrl,
-      city: profile.city || null, // місто беремо з профілю
-
-      // НОВІ ПОЛЯ — переконайся, що вони є в таблиці flowers
+      city: profile.city || null,
       description: description || null,
       composition_flowers: compositionFlowers || null,
     });
 
     if (insertError) {
-      console.error(insertError);
       setError("Помилка додавання оголошення");
       return;
     }
@@ -139,12 +127,16 @@ export default function AddFlowerPage() {
     setCompositionFlowers("");
   };
 
-  if (loading) return <p className="p-6">Завантаження...</p>;
-
-  if (error)
+  if (loading) {
     return (
-      <div className="max-w-lg mx-auto p-6 bg-white rounded-2xl shadow mt-10">
-        <p className="text-red-500 mb-4">{error}</p>
+      <p className="p-6 text-slate-800 font-medium">Завантаження...</p>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-lg mx-auto p-6 bg-white rounded-2xl shadow mt-10 text-slate-900">
+        <p className="text-red-600 mb-4 font-medium">{error}</p>
         <button
           onClick={() => router.push("/dashboard")}
           className="w-full py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold"
@@ -153,18 +145,23 @@ export default function AddFlowerPage() {
         </button>
       </div>
     );
+  }
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white rounded-2xl shadow mt-10">
-      <h1 className="text-2xl font-bold mb-4">Додати товар 🌸</h1>
+    <div className="max-w-lg mx-auto p-6 bg-white rounded-2xl shadow mt-10 text-slate-900">
+      <h1 className="text-2xl font-bold mb-4 text-slate-900">
+        Додати товар 🌸
+      </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm mb-1">Назва *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Назва *
+          </label>
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+            text-slate-900 placeholder-slate-500
+            outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             placeholder="Наприклад, троянда червона"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -172,10 +169,12 @@ export default function AddFlowerPage() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Категорія *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Категорія *
+          </label>
           <select
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-           text-slate-800 outline-none focus:border-pink-500"
+            text-slate-900 outline-none focus:border-pink-500"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -189,14 +188,14 @@ export default function AddFlowerPage() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1">
-            Детальний тип (необовʼязково)
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Детальний тип
           </label>
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-            placeholder="піоновидна, кущова, мікс тощо"
+            text-slate-900 placeholder-slate-500
+            outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+            placeholder="піоновидна, мікс тощо"
             value={type}
             onChange={(e) => setType(e.target.value)}
           />
@@ -205,29 +204,31 @@ export default function AddFlowerPage() {
         {isComplexCategory && (
           <>
             <div>
-              <label className="block text-sm mb-1">Опис*</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">
+                Опис *
+              </label>
               <textarea
-                className="w-full p-2 border rounded-lg text-sm"
+                className="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-900"
                 rows={3}
-                placeholder="Наприклад: ніжний букет з піонів та троянд, у пастельних тонах..."
+                placeholder="Опис букета або композиції"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-1">
-                Квіти в складі (через кому)
+              <label className="block text-sm font-medium text-slate-800 mb-1">
+                Квіти в складі
               </label>
               <input
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                text-slate-900 placeholder-slate-500
+                outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
                 placeholder="піони, троянди, евкаліпт"
                 value={compositionFlowers}
                 onChange={(e) => setCompositionFlowers(e.target.value)}
               />
-              <p className="mt-1 text-[11px] text-slate-600">
+              <p className="mt-1 text-xs text-slate-700">
                 Це поле допоможе покупцям знаходити букети за складом.
               </p>
             </div>
@@ -235,36 +236,40 @@ export default function AddFlowerPage() {
         )}
 
         <div>
-          <label className="block text-sm mb-1">Ціна за шт *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Ціна *
+          </label>
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-            placeholder="Наприклад, 150"
+            text-slate-900 placeholder-slate-500
+            outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Кількість на складі</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Кількість
+          </label>
           <input
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
-             outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-            placeholder="0"
+            text-slate-900 placeholder-slate-500
+            outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
             value={stock}
             onChange={(e) => setStock(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Фото</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1">
+            Фото
+          </label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="w-full text-sm"
+            className="w-full text-sm text-slate-800"
           />
         </div>
 
@@ -276,7 +281,11 @@ export default function AddFlowerPage() {
         </button>
       </form>
 
-      {success && <p className="mt-4 text-green-600 text-sm">{success}</p>}
+      {success && (
+        <p className="mt-4 text-emerald-700 text-sm font-medium">
+          {success}
+        </p>
+      )}
     </div>
   );
 }

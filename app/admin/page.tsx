@@ -117,7 +117,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Адмін-панель</h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-800">
               Тут ти підтверджуєш магазини (pending → seller).
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function AdminPage() {
                     <p className="text-sm text-slate-600">
                       {p.city || "—"} · {p.address || "—"}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-800">
                       Контакт: {p.contact || "—"}
                     </p>
                     <p className="text-[11px] text-slate-400">ID: {p.id}</p>

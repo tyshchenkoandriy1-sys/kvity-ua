@@ -142,7 +142,7 @@ export default function BuketyCatalogPage() {
           <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
             Каталог букетів 💐
           </h1>
-          <p className="mt-2 text-sm text-slate-500 md:text-base">
+          <p className="mt-2 text-sm text-slate-800 md:text-base">
             Знаходь живі букети у локальних квіткових магазинах. Фільтруй за
             містом, назвою, типом та ціною.
           </p>
@@ -240,26 +240,26 @@ export default function BuketyCatalogPage() {
                 )}
 
                 {(flower.city || shop?.city) && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-800">
                     Місто: {flower.city || shop?.city}
                   </p>
                 )}
 
                 {shop?.address && (
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[11px] text-slate-800">
                     Адреса: {shop.address}
                   </p>
                 )}
 
                 {flower.type && (
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-xs text-slate-800">
                     Тип: {flower.type}
                   </p>
                 )}
 
                 <p className="mt-3 text-sm font-semibold text-slate-900">
                   {flower.price.toLocaleString("uk-UA")} грн{" "}
-                  <span className="text-xs font-normal text-slate-500">
+                  <span className="text-xs font-normal text-slate-800">
                     {isOutOfStock
                       ? "(нема в наявності)"
                       : `(в наявності: ${flower.stock})`}

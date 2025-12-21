@@ -213,9 +213,12 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold mb-4">Мої замовлення</h1>
+   <div className="min-h-screen bg-slate-50 text-slate-900">
+  <div className="max-w-5xl mx-auto py-10 px-4">
+    <h1 className="text-3xl font-bold mb-4 text-slate-900">
+      Мої замовлення
+    </h1>
+
 
         {/* 4) Додаємо кнопки в UI */}
         <div className="mb-6 flex gap-2">

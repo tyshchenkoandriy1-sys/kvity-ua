@@ -291,7 +291,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold text-slate-800">
                         Букет “Ніжність”
                       </p>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-800">
                         від 650 грн · 350 м
                       </p>
                     </div>
@@ -304,14 +304,14 @@ export default function HomePage() {
                       <p className="text-xs font-semibold text-slate-800">
                         Троянди червоні
                       </p>
-                      <p className="text-[11px] text-slate-500">від 90 грн / шт</p>
+                      <p className="text-[11px] text-slate-800">від 90 грн / шт</p>
                     </div>
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                       Знижка
                     </span>
                   </div>
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500">
+                <p className="mt-2 text-[11px] text-slate-800">
                   kvity.ua — маркетплейс квіткових магазинів поруч з тобою 💐
                 </p>
               </div>
@@ -327,7 +327,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">
               Каталог квітів поруч
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-800">
               Квіти поштучно, букети, вазони та композиції. Частина з них — зі
               знижками та акціями.
             </p>
@@ -354,7 +354,7 @@ export default function HomePage() {
               </div>
             ))
           ) : featuredFlowers.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-800">
               Поки немає активних оголошень. Додай перші як продавець 🌱
             </p>
           ) : (
@@ -379,7 +379,7 @@ export default function HomePage() {
         <h2 className="text-center text-2xl font-bold text-slate-900 md:text-3xl">
           Як працює kvity.ua?
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-500 md:text-base">
+        <p className="mt-2 text-center text-sm text-slate-800 md:text-base">
           Все просто — кілька кроків для покупців та продавців.
         </p>
 
@@ -416,7 +416,7 @@ export default function HomePage() {
               <h3 className="text-sm font-semibold text-slate-900">
                 {item.title}
               </h3>
-              <p className="mt-2 text-sm text-slate-500">{item.text}</p>
+              <p className="mt-2 text-sm text-slate-800">{item.text}</p>
             </div>
           ))}
         </div>
@@ -481,7 +481,7 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">kvity.ua</h3>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-800">
                 Маркетплейс локальних квіткових магазинів. Проєкт junior
                 розробника на Next.js + Supabase.
               </p>
@@ -490,7 +490,7 @@ export default function HomePage() {
               <h3 className="text-sm font-semibold text-slate-900">
                 Для покупців
               </h3>
-              <ul className="mt-2 space-y-1 text-xs text-slate-500">
+              <ul className="mt-2 space-y-1 text-xs text-slate-800">
                 <li>
                   <Link href="/flowers" className="hover:text-slate-800">
                     Каталог квітів
@@ -515,7 +515,7 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-slate-900">Контакти</h3>
-              <ul className="mt-2 space-y-1 text-xs text-slate-500">
+              <ul className="mt-2 space-y-1 text-xs text-slate-800">
                 <li>
                   Email: <span className="font-mono">you@example.com</span>
                 </li>
@@ -610,7 +610,7 @@ function FlowerCard({ flower }: { flower: Flower }) {
       </div>
 
       <h3 className="text-sm font-semibold text-slate-900">{flower.name}</h3>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1 text-xs text-slate-800">
         {flower.type} · {flower.city}
       </p>
 
@@ -625,7 +625,7 @@ function FlowerCard({ flower }: { flower: Flower }) {
         </p>
       </div>
 
-      <p className="mt-2 line-clamp-2 text-xs text-slate-500">
+      <p className="mt-2 line-clamp-2 text-xs text-slate-800">
         {flower.shop_name} · {flower.address}
       </p>
 

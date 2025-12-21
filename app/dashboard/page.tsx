@@ -13,7 +13,7 @@ type Profile = {
   city: string | null;
   contact: string | null;
   address: string | null;
-  avatar_url?: string | null; // те саме поле, що ти використовуєш на /profile
+  avatar_url?: string | null;
 };
 
 export default function DashboardPage() {
@@ -78,7 +78,6 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      // 1. Поточний юзер
       const {
         data: { session },
         error: sessionError,
@@ -92,7 +91,6 @@ export default function DashboardPage() {
 
       const userId = session.user.id;
 
-      // 2. Профіль
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("id, role, shop_name, city, contact, address, avatar_url")
@@ -109,7 +107,6 @@ export default function DashboardPage() {
       const typedProfile = profileData as Profile;
       setProfile(typedProfile);
 
-      // Статистика по замовленням рахується тільки для seller (бо це shop_id)
       if (typedProfile.role === "seller") {
         await loadStats(typedProfile.id);
       } else {
@@ -138,7 +135,9 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Завантаження кабінету...</p>
+        <p className="text-sm font-medium text-slate-700">
+          Завантаження кабінету...
+        </p>
       </main>
     );
   }
@@ -146,7 +145,7 @@ export default function DashboardPage() {
   if (!profile) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-red-500">
+        <p className="text-sm font-medium text-red-700">
           {error ?? "Профіль не знайдено."}
         </p>
       </main>
@@ -168,8 +167,8 @@ export default function DashboardPage() {
   const statusColor = isAdmin
     ? "text-slate-900"
     : isSeller
-    ? "text-emerald-600"
-    : "text-amber-600";
+    ? "text-emerald-700"
+    : "text-amber-700";
 
   const statusBg = isAdmin
     ? "bg-slate-100"
@@ -177,14 +176,13 @@ export default function DashboardPage() {
     ? "bg-emerald-50"
     : "bg-amber-50";
 
-  // seller-only кнопки (як ти й хотів по доступах)
   const sellerOnlyDisabled = !isSeller;
   const sellerOnlyHint = isPending
     ? "Доступно після підтвердження магазину."
     : "Доступно тільки продавцю.";
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 md:py-10">
         {/* Заголовок + кнопки */}
         <header className="flex items-center justify-between gap-3">
@@ -192,7 +190,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
               Кабінет квіткового магазину
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-700">
               Керуй товарами, замовленнями та профілем свого магазину.
             </p>
           </div>
@@ -202,7 +200,7 @@ export default function DashboardPage() {
             {isAdmin && (
               <button
                 onClick={() => router.push("/admin")}
-                className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
+                className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
               >
                 Адмінка
               </button>
@@ -211,7 +209,7 @@ export default function DashboardPage() {
             <button
               onClick={handleLogout}
               disabled={logoutLoading}
-              className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
+              className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-70"
             >
               {logoutLoading ? "Вихід..." : "Вийти"}
             </button>
@@ -230,7 +228,7 @@ export default function DashboardPage() {
                 className="h-20 w-20 rounded-2xl object-cover md:h-24 md:w-24"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 text-sm text-slate-600 md:h-24 md:w-24">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 text-sm font-medium text-slate-700 md:h-24 md:w-24">
                 Без фото
               </div>
             )}
@@ -239,26 +237,29 @@ export default function DashboardPage() {
               <p className="text-sm font-semibold text-slate-900">
                 Магазин: {profile.shop_name || "Без назви"}
               </p>
+
               {profile.city && (
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-700">
                   Місто:{" "}
-                  <span className="font-medium text-slate-800">
+                  <span className="font-semibold text-slate-900">
                     {profile.city}
                   </span>
                 </p>
               )}
+
               {profile.address && (
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-700">
                   Адреса:{" "}
-                  <span className="font-medium text-slate-800">
+                  <span className="font-semibold text-slate-900">
                     {profile.address}
                   </span>
                 </p>
               )}
+
               {profile.contact && (
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-700">
                   Контакт:{" "}
-                  <span className="font-medium text-slate-800">
+                  <span className="font-semibold text-slate-900">
                     {profile.contact}
                   </span>
                 </p>
@@ -274,38 +275,38 @@ export default function DashboardPage() {
               Статус: {statusLabel}
             </div>
 
-            <div className="flex flex-col items-start gap-1 text-sm text-slate-700 md:items-end">
-              <p className="font-semibold">
+            <div className="flex flex-col items-start gap-1 text-sm text-slate-800 md:items-end">
+              <p className="font-semibold text-slate-900">
                 Виконаних замовлень:{" "}
-                <span className="text-pink-600">{stats.doneOrders}</span>
+                <span className="text-pink-700">{stats.doneOrders}</span>
               </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-700">
                 В роботі:{" "}
                 <span className="font-semibold text-slate-900">
                   {stats.inProgressOrders}
                 </span>{" "}
                 · Скасовано:{" "}
-                <span className="font-semibold text-red-600">
+                <span className="font-semibold text-red-700">
                   {stats.cancelledOrders}
                 </span>
               </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-700">
                 Продано (done):{" "}
                 <span className="font-semibold text-slate-900">
                   {stats.totalItemsDone} шт
                 </span>
               </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-700">
                 Оборот (done):{" "}
-                <span className="font-semibold text-emerald-600">
+                <span className="font-semibold text-emerald-700">
                   {stats.totalRevenueDone.toLocaleString("uk-UA")} грн
                 </span>
               </p>
 
-              <p className="text-[11px] text-slate-600">
+              <p className="text-[11px] text-slate-700">
                 Рахується за замовленнями зі статусом “done”.
               </p>
             </div>
@@ -316,12 +317,12 @@ export default function DashboardPage() {
         <section className="grid gap-4 md:grid-cols-2">
           <button
             onClick={() => router.push("/profile")}
-            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
           >
             <span className="font-semibold text-slate-900">
               Профіль продавця
             </span>
-            <span className="mt-1 text-xs text-slate-500">
+            <span className="mt-1 text-xs text-slate-700">
               Фото, назва магазину, контакти, адреса.
             </span>
           </button>
@@ -332,12 +333,12 @@ export default function DashboardPage() {
             className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
               ${
                 sellerOnlyDisabled
-                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+                  ? "border-slate-200 bg-slate-50 text-slate-800 cursor-not-allowed opacity-70"
+                  : "border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
               }`}
           >
-            <span className="font-semibold">Мої квіти</span>
-            <span className="mt-1 text-xs">
+            <span className="font-semibold text-slate-900">Мої квіти</span>
+            <span className="mt-1 text-xs text-slate-700">
               {sellerOnlyDisabled
                 ? sellerOnlyHint
                 : "Перегляд, редагування та видалення оголошень."}
@@ -350,12 +351,12 @@ export default function DashboardPage() {
             className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
               ${
                 sellerOnlyDisabled
-                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+                  ? "border-slate-200 bg-slate-50 text-slate-800 cursor-not-allowed opacity-70"
+                  : "border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
               }`}
           >
-            <span className="font-semibold">Додати квітку</span>
-            <span className="mt-1 text-xs">
+            <span className="font-semibold text-slate-900">Додати квітку</span>
+            <span className="mt-1 text-xs text-slate-700">
               {sellerOnlyDisabled
                 ? sellerOnlyHint
                 : "Створення нового оголошення з фото та ціною."}
@@ -368,12 +369,12 @@ export default function DashboardPage() {
             className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left text-sm shadow-sm transition
               ${
                 sellerOnlyDisabled
-                  ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                  : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+                  ? "border-slate-200 bg-slate-50 text-slate-800 cursor-not-allowed opacity-70"
+                  : "border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
               }`}
           >
-            <span className="font-semibold">Мої замовлення</span>
-            <span className="mt-1 text-xs">
+            <span className="font-semibold text-slate-900">Мої замовлення</span>
+            <span className="mt-1 text-xs text-slate-700">
               {sellerOnlyDisabled
                 ? sellerOnlyHint
                 : "Перегляд замовлень, контакти покупців, зміна статусу."}
