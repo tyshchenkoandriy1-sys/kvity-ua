@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const [contact, setContact] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
- const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
+  const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
 
   useEffect(() => {
     const load = async () => {
@@ -49,8 +49,8 @@ export default function ProfilePage() {
         return;
       }
 
-      // тільки seller
-      if (data.role !== "seller") {
+      // ✅ seller або admin (щоб не “ламалось” після того як ти став адміном)
+      if (!["seller", "admin"].includes(data.role)) {
         setError("Сторінка профілю продавця доступна лише для продавців.");
         setLoading(false);
         return;
@@ -149,17 +149,17 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p>Завантаження...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900">
+        <p className="text-slate-900">Завантаження...</p>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="bg-white shadow-lg rounded-2xl p-6 max-w-md w-full text-center">
-          <p className="text-red-500 mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900">
+        <div className="bg-white shadow-lg rounded-2xl p-6 max-w-md w-full text-center text-slate-900">
+          <p className="text-red-600 mb-4">
             {error ?? "Профіль продавця недоступний"}
           </p>
           <button
@@ -174,9 +174,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-xl w-full">
-        <h1 className="text-2xl font-bold mb-6">Мій профіль продавця</h1>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-900">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-xl w-full text-slate-900">
+        <h1 className="text-2xl font-bold mb-6 text-slate-900">
+          Мій профіль продавця
+        </h1>
 
         {/* Верхній блок з аватаром */}
         <div className="flex items-center gap-4 mb-6">
@@ -188,17 +190,17 @@ export default function ProfilePage() {
               className="w-20 h-20 rounded-full object-cover"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-sm">
+            <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 text-sm">
               Без фото
             </div>
           )}
 
           <div>
-            <p className="font-semibold">
+            <p className="font-semibold text-slate-900">
               {profile.shop_name || "Назва магазину не вказана"}
             </p>
-            {email && <p className="text-sm text-slate-500">{email}</p>}
-            <p className="text-sm text-slate-500">
+            {email && <p className="text-sm text-slate-700">{email}</p>}
+            <p className="text-sm text-slate-700">
               {profile.city || "Місто не вказано"}
               {profile.contact && <> · {profile.contact}</>}
             </p>
@@ -207,7 +209,7 @@ export default function ProfilePage() {
 
         {/* Зміна аватарки */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-1 text-slate-900">
             Змінити фото профілю
           </label>
           <input
@@ -217,19 +219,19 @@ export default function ProfilePage() {
             disabled={uploading}
           />
           {uploading && (
-            <p className="text-xs text-slate-500 mt-1">Завантаження...</p>
+            <p className="text-xs text-slate-700 mt-1">Завантаження...</p>
           )}
         </div>
 
         {/* Форма редагування даних магазину */}
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-slate-900">
               Назва магазину
             </label>
             <input
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-600
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={shopName}
               onChange={(e) => setShopName(e.target.value)}
@@ -238,12 +240,12 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-slate-900">
               Номер телефону
             </label>
             <input
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-600
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
@@ -252,33 +254,32 @@ export default function ProfilePage() {
           </div>
 
           <div>
-  <label className="block text-sm font-medium mb-1">
-    Місто
-  </label>
-  <select
-    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+            <label className="block text-sm font-medium mb-1 text-slate-900">
+              Місто
+            </label>
+            <select
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
+             text-slate-900 placeholder-slate-600
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-    value={city}
-    onChange={(e) => setCity(e.target.value)}
-  >
-    <option value="">Оберіть місто</option>
-    {CITIES.map((c) => (
-      <option key={c} value={c}>
-        {c}
-      </option>
-    ))}
-  </select>
-</div>
-
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            >
+              <option value="">Оберіть місто</option>
+              {CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-slate-900">
               Адреса
             </label>
             <input
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm
-             text-slate-800 placeholder-slate-500
+             text-slate-900 placeholder-slate-600
              outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -295,12 +296,8 @@ export default function ProfilePage() {
           </button>
         </form>
 
-        {error && (
-          <p className="text-red-500 text-sm mt-3">{error}</p>
-        )}
-        {success && (
-          <p className="text-emerald-600 text-sm mt-3">{success}</p>
-        )}
+        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
+        {success && <p className="text-emerald-700 text-sm mt-3">{success}</p>}
       </div>
     </div>
   );
