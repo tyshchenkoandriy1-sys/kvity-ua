@@ -163,13 +163,17 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
+            
+
       {/* HERO */}
       <section className="relative overflow-hidden border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 md:flex-row md:items-center md:py-20">
           <div className="flex-1 space-y-6">
-            <p className="inline-flex items-center rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
-              kvity.ua · маркетплейс квіткових магазинів
-            </p>
+            <p className="inline-flex items-center gap-2 rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
+  {/* eslint-disable-next-line @next/next/no-img-element */}
+  <img src="/logo.png" alt="" className="h-4 w-4 rounded-md" />
+  KVITY.INFO · маркетплейс квіткових магазинів
+</p>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
               Квіти поруч з тобою 🌸
             </h1>
@@ -312,7 +316,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="mt-2 text-[11px] text-slate-800">
-                  kvity.ua — маркетплейс квіткових магазинів поруч з тобою 💐
+                  KVITY.INFO — маркетплейс квіткових магазинів поруч з тобою 💐
                 </p>
               </div>
             </div>
@@ -377,7 +381,7 @@ export default function HomePage() {
       {/* ЯК ЦЕ ПРАЦЮЄ */}
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <h2 className="text-center text-2xl font-bold text-slate-900 md:text-3xl">
-          Як працює kvity.ua?
+          Як працює KVITY.INFO?
         </h2>
         <p className="mt-2 text-center text-sm text-slate-800 md:text-base">
           Все просто — кілька кроків для покупців та продавців.
@@ -431,7 +435,7 @@ export default function HomePage() {
                 Для квіткових магазинів
               </p>
               <h2 className="text-2xl font-bold text-white md:text-3xl">
-                Додай свій магазин на kvity.ua 💐
+                Додай свій магазин на KVITY.INFO 💐
               </h2>
               <p className="text-sm text-slate-300 md:text-base">
                 Отримуй нових клієнтів без власного дорогого сайту. Проста
@@ -449,7 +453,7 @@ export default function HomePage() {
                   href="/partner"
                   className="inline-flex items-center rounded-xl bg-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600"
                 >
-                  Стати партнером kvity.ua
+                  Стати партнером KVITY.INFO
                 </Link>
               </div>
             </div>
@@ -480,7 +484,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
           <div className="grid gap-6 md:grid-cols-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">kvity.ua</h3>
+              <h3 className="text-sm font-semibold text-slate-900">KVITY.INFO</h3>
               <p className="mt-2 text-xs text-slate-800">
                 Маркетплейс локальних квіткових магазинів. Проєкт junior
                 розробника на Next.js + Supabase.
@@ -539,7 +543,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-6 text-center text-[11px] text-slate-600">
-            © {new Date().getFullYear()} kvity.ua · зроблено як pet-проєкт.
+            © {new Date().getFullYear()} KVITY.INFO · зроблено людьми для людей.
           </p>
         </div>
       </footer>

@@ -10,7 +10,7 @@ export default function PartnerPage() {
     <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full rounded-3xl bg-white shadow-lg border border-slate-200 p-6 md:p-8">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-          Стати партнером kvity.ua
+          Стати партнером KVITY.INFO
         </h1>
         <p className="mt-2 text-sm text-slate-500">
           Якщо у вас є квітковий магазин — створіть кабінет продавця або
