@@ -521,7 +521,7 @@ export default function HomePage() {
               <h3 className="text-sm font-semibold text-slate-900">Контакти</h3>
               <ul className="mt-2 space-y-1 text-xs text-slate-800">
                 <li>
-                  Email: <span className="font-mono">you@example.com</span>
+                  Email: <span className="font-mono">flower.work001@gmail.com</span>
                 </li>
                 <li>
                   Telegram:{" "}
@@ -534,9 +534,6 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li>
-                  <Link href="/contacts" className="hover:text-slate-800">
-                    Сторінка контактів
-                  </Link>
                 </li>
               </ul>
             </div>

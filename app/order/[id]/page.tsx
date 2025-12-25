@@ -36,11 +36,12 @@ export default function OrderPage() {
     const load = async () => {
       if (!flowerId) return;
 
-      const { data, error } = await supabase
-        .from("flowers")
-        .select("*")
-        .eq("id", flowerId)
-        .single();
+      const { data } = await supabase
+  .from("flowers")
+  .select("id, shop_id, name, price, city, photo, stock")
+  .eq("id", params.id)
+  .single();
+
 
       if (error || !data) {
         setError("Квітку не знайдено");
@@ -89,15 +90,19 @@ export default function OrderPage() {
 
     // 1) створюємо замовлення
     const { error: orderError } = await supabase.from("orders").insert({
-      flower_id: flower.id,
-      shop_id: flower.shop_id,
-      buyer_name: buyerName,
-      buyer_phone: buyerPhone,
-      buyer_email: buyerEmail,
-      buyer_comment: comment || null,
-      quantity: qty,
-      status: "new",
-    });
+  flower_id: flower.id,
+  shop_id: flower.shop_id,
+  buyer_name: buyerName,
+  buyer_phone: buyerPhone,
+  buyer_email: buyerEmail,
+  buyer_comment: comment || null,
+  quantity: qty,
+  status: "new",
+});
+
+
+console.log("DEBUG shop_id:", flower?.shop_id);
+console.log("ORDER ERROR:", orderError);
 
     if (orderError) {
       console.error(orderError);

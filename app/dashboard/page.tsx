@@ -205,6 +205,15 @@ export default function DashboardPage() {
                 Адмінка
               </button>
             )}
+            {isSeller && (
+  <button
+    onClick={() => router.push("/telegram")}
+    className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
+  >
+    Telegram-сповіщення
+  </button>
+)}
+
 
             <button
               onClick={handleLogout}

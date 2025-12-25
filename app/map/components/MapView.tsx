@@ -104,7 +104,7 @@ export default function MapView({
                   <p className="mt-1 text-[11px] font-semibold text-slate-900">
                     від {shop.minPrice.toLocaleString("uk-UA")} грн
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-400">
+                  <p className="mt-1 text-[11px] text-slate-600">
                     Варіантів: {shop.flowersCount}
                   </p>
 
