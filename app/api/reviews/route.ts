@@ -1,21 +1,37 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 export async function POST(req: Request) {
   try {
+    // ✅ створюємо клієнт тільки під час реального запиту
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { error: "Server misconfigured: missing Supabase env" },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
     const { token, rating, comment } = await req.json();
 
     if (!token || typeof rating !== "number") {
-      return NextResponse.json({ error: "Missing token/rating" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing token/rating" },
+        { status: 400 }
+      );
     }
+
     if (rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "Rating must be 1..5" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Rating must be 1..5" },
+        { status: 400 }
+      );
     }
 
     // 1) знайти замовлення по токену
@@ -31,15 +47,21 @@ export async function POST(req: Request) {
 
     // 2) дозволяємо відгук тільки після завершення
     if (order.status !== "done") {
-      return NextResponse.json({ error: "Order is not done" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Order is not done" },
+        { status: 400 }
+      );
     }
 
-    // 3) вставляємо відгук (unique index не дасть 2й)
+    // 3) вставляємо відгук
+    const cleanedComment =
+      typeof comment === "string" && comment.trim() ? comment.trim() : null;
+
     const { error: insErr } = await supabaseAdmin.from("reviews").insert({
       order_id: order.id,
       shop_id: order.shop_id,
       rating,
-      comment: typeof comment === "string" && comment.trim() ? comment.trim() : null,
+      comment: cleanedComment,
     });
 
     if (insErr) {
@@ -47,7 +69,10 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: "Bad request", details: e?.message ?? null },
+      { status: 400 }
+    );
   }
 }
