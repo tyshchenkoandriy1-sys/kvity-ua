@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
+import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+
 
 // імпорт компонента мапи (без SSR)
 const MapView = dynamic(() => import("./components/MapView"), {
@@ -70,6 +72,8 @@ export default function MapPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    const [ratings, setRatings] = useState<Record<string, { rating_avg: number; reviews_count: number }>>({});
+
 
   const [flowers, setFlowers] = useState<FlowerRow[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, JoinedProfile>>({});
@@ -154,6 +158,31 @@ export default function MapPage() {
         });
         setProfilesMap(map);
       }
+       // ⭐ підтягнути рейтинги магазинів
+if (shopIds.length > 0) {
+  const { data: ratingsData, error: ratingsError } = await supabase
+    .from("shop_ratings")
+    .select("shop_id, rating_avg, reviews_count")
+    .in("shop_id", shopIds);
+
+  if (ratingsError) {
+    console.warn("Cannot load ratings:", ratingsError);
+    setRatings({});
+  } else {
+    const rmap: Record<string, { rating_avg: number; reviews_count: number }> = {};
+    (ratingsData || []).forEach((r: any) => {
+      rmap[r.shop_id] = {
+        rating_avg: Number(r.rating_avg),
+        reviews_count: Number(r.reviews_count),
+      };
+    });
+    setRatings(rmap);
+  }
+} else {
+  setRatings({});
+}
+      
+      
 
       setLoading(false);
     };
@@ -403,6 +432,11 @@ export default function MapPage() {
                           <p className="mt-1 text-[11px] text-slate-600">
                             Варіантів: {shop.flowersCount}
                           </p>
+                          <SellerRatingBadge
+  avg={ratings[shop.shopId]?.rating_avg}
+  count={ratings[shop.shopId]?.reviews_count}
+/>
+
                         </button>
 
                         <div className="mt-2 flex gap-2">

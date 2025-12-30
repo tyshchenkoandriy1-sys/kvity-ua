@@ -4,6 +4,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+
 
 type Flower = {
   id: string;
@@ -56,6 +58,8 @@ export default function SalesPage() {
   const [shops, setShops] = useState<ShopsMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, { rating_avg: number; reviews_count: number }>>({});
+
 
   // прості фільтри
   const [cityFilter, setCityFilter] = useState("");
@@ -160,6 +164,26 @@ export default function SalesPage() {
     } else {
       setShops({});
     }
+    // ⭐ підтягнути рейтинги магазинів
+const { data: ratingsData, error: ratingsError } = await supabase
+  .from("shop_ratings")
+  .select("shop_id, rating_avg, reviews_count")
+  .in("shop_id", shopIds);
+
+if (ratingsError) {
+  console.warn("Cannot load ratings:", ratingsError);
+  setRatings({});
+} else {
+  const rmap: Record<string, { rating_avg: number; reviews_count: number }> = {};
+  (ratingsData || []).forEach((r: any) => {
+    rmap[r.shop_id] = {
+      rating_avg: Number(r.rating_avg),
+      reviews_count: Number(r.reviews_count),
+    };
+  });
+  setRatings(rmap);
+}
+
 
     setLoading(false);
   };
@@ -310,12 +334,18 @@ export default function SalesPage() {
                       Магазин: {shop.shop_name}
                     </p>
                   )}
+                  
 
                   {(flower.city || shop?.city) && (
                     <p className="text-xs text-slate-500">
                       Місто: {flower.city || shop?.city}
                     </p>
                   )}
+                  <SellerRatingBadge
+  avg={ratings[flower.shop_id]?.rating_avg}
+  count={ratings[flower.shop_id]?.reviews_count}
+/>
+                  
 
                   {shop?.address && (
                     <p className="text-[11px] text-slate-500">
@@ -328,6 +358,8 @@ export default function SalesPage() {
                       Тип: {flower.type}
                     </p>
                   )}
+                  
+
 
                   {/* Ціни зі знижкою */}
                   <div className="mt-3 flex items-baseline gap-2">

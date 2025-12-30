@@ -4,6 +4,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+
 
 type Vazony = {
   id: string;
@@ -42,6 +44,8 @@ export default function VazonyPage() {
   const [shops, setShops] = useState<ShopsMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, { rating_avg: number; reviews_count: number }>>({});
+
 
   const [cityFilter, setCityFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
@@ -148,9 +152,35 @@ setVazony(visible);
     } else {
       setShops({});
     }
+    // ⭐ підтягнути рейтинги магазинів
+if (shopIds.length > 0) {
+  const { data: ratingsData, error: ratingsError } = await supabase
+    .from("shop_ratings")
+    .select("shop_id, rating_avg, reviews_count")
+    .in("shop_id", shopIds);
+
+  if (ratingsError) {
+    console.warn("Cannot load ratings:", ratingsError);
+    setRatings({});
+  } else {
+    const rmap: Record<string, { rating_avg: number; reviews_count: number }> = {};
+    (ratingsData || []).forEach((r: any) => {
+      rmap[r.shop_id] = {
+        rating_avg: Number(r.rating_avg),
+        reviews_count: Number(r.reviews_count),
+      };
+    });
+    setRatings(rmap);
+  }
+} else {
+  setRatings({});
+}
+
+    
 
     setLoading(false);
   };
+  
 
   useEffect(() => {
     fetchVazony();
@@ -289,6 +319,11 @@ setVazony(visible);
                       Магазин: {shop.shop_name}
                     </p>
                   )}
+                  <SellerRatingBadge
+  avg={ratings[item.shop_id]?.rating_avg}
+  count={ratings[item.shop_id]?.reviews_count}
+/>
+
 
                   {(item.city || shop?.city) && (
                     <p className="text-xs text-slate-500">

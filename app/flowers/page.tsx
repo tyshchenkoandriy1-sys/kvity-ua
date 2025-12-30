@@ -4,6 +4,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+
 
 type Flower = {
   id: string;
@@ -43,6 +45,7 @@ const isBouquetType = (type: string | null) => {
 export default function FlowersCatalogPage() {
   const [flowers, setFlowers] = useState<Flower[]>([]);
   const [shops, setShops] = useState<ShopsMap>({});
+  const [ratings, setRatings] = useState<Record<string, { rating_avg: number; reviews_count: number }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,12 +57,14 @@ export default function FlowersCatalogPage() {
   const router = useRouter();
 
   // 🔹 основна функція завантаження квітів
-  const fetchFlowers = async (opts?: {
+  const fetchFlowers = async (opts?: { 
+    
     city?: string;
     name?: string;
     type?: string;
     maxPrice?: string;
   }) => {
+    console.log("FETCH_FLOWERS CALLED");
     setLoading(true);
     setError(null);
 
@@ -138,39 +143,69 @@ const isBlocked = (flower: { photo_updated_at: string | null; created_at: string
 setFlowers(visibleFlowers);
 
 
-    // підтягнути профілі магазинів
-    const shopIds = Array.from(
-      new Set(
-        typedFlowers
-          .map((f) => f.shop_id)
-          .filter((id): id is string => Boolean(id))
-      )
-    );
+   const shopIds = Array.from(
+  new Set(
+    typedFlowers
+      .map((f) => f.shop_id)
+      .filter((id): id is string => Boolean(id))
+  )
+);
 
-    if (shopIds.length > 0) {
-      const {
-        data: shopsData,
-        error: shopsError,
-      } = await supabase
-        .from("profiles")
-        .select("id, shop_name, address, city")
-        .in("id", shopIds);
+console.log("SHOP_IDS_LENGTH", shopIds.length);
+console.log("SHOP_IDS_SAMPLE", shopIds.slice(0, 3));
 
-      if (shopsError) {
-        console.warn("Cannot load shops:", shopsError);
-      } else {
-        const map: ShopsMap = {};
-        (shopsData as ShopProfile[]).forEach((shop) => {
-          map[shop.id] = shop;
-        });
-        setShops(map);
-      }
-    } else {
-      setShops({});
-    }
+// ✅ 1) підтягнути профілі магазинів
+if (shopIds.length > 0) {
+  const { data: shopsData, error: shopsError } = await supabase
+    .from("profiles")
+    .select("id, shop_name, address, city")
+    .in("id", shopIds);
 
-    setLoading(false);
-  };
+  if (shopsError) {
+    console.warn("Cannot load shops:", shopsError);
+    setShops({});
+  } else {
+    const map: ShopsMap = {};
+    (shopsData as ShopProfile[]).forEach((shop) => {
+      map[shop.id] = shop;
+    });
+    setShops(map);
+  }
+} else {
+  setShops({});
+}
+
+// ✅ 2) ⭐ підтягнути рейтинги магазинів (окремо, після shops)
+if (shopIds.length > 0) {
+  const { data: ratingsData, error: ratingsError } = await supabase
+    .from("shop_ratings")
+    .select("shop_id, rating_avg, reviews_count")
+    .in("shop_id", shopIds);
+
+  if (ratingsError) {
+    console.warn("Cannot load ratings:", ratingsError);
+    setRatings({});
+  } else {
+    const rmap: Record<string, { rating_avg: number; reviews_count: number }> =
+      {};
+
+    (ratingsData || []).forEach((r: any) => {
+      rmap[r.shop_id] = {
+        rating_avg: Number(r.rating_avg),
+        reviews_count: Number(r.reviews_count),
+      };
+    });
+
+    setRatings(rmap);
+    console.log("RATINGS_MAP", rmap);
+  }
+} else {
+  setRatings({});
+}
+setLoading(false);
+};
+
+
 
   // 🔹 1) При першому рендері читаємо фільтри з URL (тільки на клієнті)
   useEffect(() => {
@@ -355,6 +390,11 @@ setFlowers(visibleFlowers);
                       Магазин: {shop.shop_name}
                     </p>
                   )}
+                  <SellerRatingBadge
+  avg={ratings[flower.shop_id]?.rating_avg}
+  count={ratings[flower.shop_id]?.reviews_count}
+/>
+
 
                   {(flower.city || shop?.city) && (
                     <p className="text-xs text-slate-500">
