@@ -5,7 +5,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,8 +29,8 @@ export default function RootLayout({
 
   return (
     <html lang="uk">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Google Analytics */}
+      {/* ✅ GA скрипти краще в <head> */}
+      <head>
         {GA_ID ? (
           <>
             <Script
@@ -43,16 +42,20 @@ export default function RootLayout({
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '${GA_ID}');
+                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
               `}
             </Script>
           </>
         ) : null}
+      </head>
+
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* ✅ Відстеження переходів між сторінками */}
+        <AnalyticsProvider />
 
         {/* ✅ ЄДИНИЙ ХЕДЕР */}
         <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            {/* Logo (прямокутний) */}
             <Link href="/" className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -65,7 +68,6 @@ export default function RootLayout({
               </span>
             </Link>
 
-            {/* Desktop nav */}
             <nav className="hidden items-center gap-6 md:flex">
               <Link
                 href="/flowers"
@@ -86,15 +88,10 @@ export default function RootLayout({
                 Для магазинів
               </Link>
             </nav>
-
-            {/* Actions */}
           </div>
         </header>
-<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-  <AnalyticsProvider />
-  {children}
-</body>
 
+        {/* ✅ Контент сторінок */}
         {children}
       </body>
     </html>
