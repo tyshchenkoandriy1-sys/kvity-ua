@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+export async function GET() {
+  return NextResponse.json({ ok: true, message: "reviews endpoint is alive (POST only)" });
+}
+
 export async function POST(req: Request) {
   try {
     // ✅ створюємо клієнт тільки під час реального запиту
