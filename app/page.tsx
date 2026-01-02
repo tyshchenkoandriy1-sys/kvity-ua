@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { trackSearch } from "@/lib/ga";
+
 
 const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
 const FLOWER_TYPES = ["Квіти", "Вазони", "Букети", "Композиції"];
@@ -136,6 +138,13 @@ export default function HomePage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    trackSearch({
+  city,
+  type,
+  flowerName,
+  color: flowerColor,
+});
+
 
     // якщо вибрали одну з груп — перекидаємо на окремі сторінки
     if (type === "Букети") {
