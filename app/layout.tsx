@@ -16,9 +16,46 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KVITY.INFO",
-  description: "Маркетплейс квіткових магазинів",
+  title: {
+    default: "KVITY.INFO — квіти поруч з тобою",
+    template: "%s | KVITY.INFO",
+  },
+  description:
+    "KVITY.INFO — маркетплейс квіткових магазинів. Знайди квіти, букети та композиції у своєму місті: Київ, Львів, Івано-Франківськ.",
+  keywords: [
+    "квіти",
+    "букети",
+    "квітковий магазин",
+    "доставка квітів",
+    "купити квіти",
+    "квіти Київ",
+    "квіти Львів",
+    "квіти Івано-Франківськ",
+  ],
+  metadataBase: new URL("https://kvity.info"),
+  openGraph: {
+    title: "KVITY.INFO — квіти поруч з тобою",
+    description:
+      "Маркетплейс квіткових магазинів. Обирай квіти за ціною, фото та відстанню.",
+    url: "https://kvity.info",
+    siteName: "KVITY.INFO",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "KVITY.INFO — маркетплейс квітів",
+      },
+    ],
+    locale: "uk_UA",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
+
 
 export default function RootLayout({
   children,
