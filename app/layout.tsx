@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     "квіти Івано-Франківськ",
   ],
   metadataBase: new URL("https://kvity.info"),
+  verification: {
+  google:"vziwhgHaPbYdpq-Yw7oat4Ir6AeEAv1-pO4kU6DfiU4"
+},
   openGraph: {
     title: "KVITY.INFO — квіти поруч з тобою",
     description:
