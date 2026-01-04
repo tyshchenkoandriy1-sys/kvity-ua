@@ -1,6 +1,7 @@
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10 text-slate-900">
+    <main className="mx-auto max-w-4xl bg-white px-4 py-10 text-slate-900">
+
       <h1 className="mb-3 text-3xl font-bold">Політика конфіденційності</h1>
 
       <p className="mb-8 text-sm text-slate-600">
