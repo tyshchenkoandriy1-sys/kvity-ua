@@ -558,13 +558,13 @@ export default function HomePage() {
                   Email: <span className="font-mono">flower.work001@gmail.com</span>
                 </li>
                 <li>
-                  Telegram:{"@kvityinfo"}
+                  Telegram:{""}
                   <a
                     href="https://t.me/kvityinfo"
                     target="_blank"
                     className="text-pink-600 hover:text-pink-700"
                   >
-                    @your_nick
+                    @kvityinfo
                   </a>
                 </li>
                 <li>
