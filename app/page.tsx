@@ -332,6 +332,25 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <section className="mx-auto max-w-6xl px-4 py-10">
+  <h2 className="text-xl font-bold text-slate-900">
+    Купити квіти та букети онлайн у своєму місті
+  </h2>
+
+  <p className="mt-4 text-sm text-slate-800">
+    KVITY.INFO — це онлайн маркетплейс квіткових магазинів, який допомагає
+    швидко знайти та купити квіти поруч з тобою. Ми об’єднуємо локальні
+    квіткові магазини в одному місці, щоб ти міг обрати букет за фото,
+    ціною та відстанню.
+  </p>
+
+  <p className="mt-3 text-sm text-slate-800">
+    На KVITY.INFO ти знайдеш живі квіти, букети, вазони та композиції у
+    містах Київ, Львів та Івано-Франківськ. Обирай квіти онлайн без
+    зайвих дзвінків — просто залиш заявку, і магазин зв’яжеться з тобою.
+  </p>
+</section>
+
 
       {/* 📌 КАТАЛОГ НА ГОЛОВНІЙ */}
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-14">
@@ -524,6 +543,12 @@ export default function HomePage() {
                     FAQ
                   </Link>
                 </li>
+                <li>
+  <Link href="/privacy" className="hover:text-slate-800">
+    Політика конфіденційності
+  </Link>
+</li>
+
               </ul>
             </div>
             <div>
@@ -533,9 +558,9 @@ export default function HomePage() {
                   Email: <span className="font-mono">flower.work001@gmail.com</span>
                 </li>
                 <li>
-                  Telegram:{" "}
+                  Telegram:{"@kvityinfo"}
                   <a
-                    href="https://t.me/your_nick"
+                    href="https://t.me/kvityinfo"
                     target="_blank"
                     className="text-pink-600 hover:text-pink-700"
                   >
