@@ -4,6 +4,9 @@ import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
+import CookieBanner from "@/components/CookieBanner";
+import GaAfterConsent from "@/components/GaAfterConsent";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,28 +73,11 @@ export default function RootLayout({
   return (
     <html lang="uk">
       {/* ✅ GA скрипти краще в <head> */}
-      <head>
-        {GA_ID ? (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="ga-init" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
-              `}
-            </Script>
-          </>
-        ) : null}
-      </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* ✅ Відстеження переходів між сторінками */}
         <AnalyticsProvider />
+        <GaAfterConsent />
 
         {/* ✅ ЄДИНИЙ ХЕДЕР */}
         <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
@@ -133,6 +119,7 @@ export default function RootLayout({
 
         {/* ✅ Контент сторінок */}
         {children}
+         <CookieBanner />
       </body>
     </html>
   );

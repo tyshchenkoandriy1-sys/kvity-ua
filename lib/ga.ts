@@ -1,14 +1,27 @@
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+type GtagFn = (...args: any[]) => void;
+
+const getGtag = (): GtagFn | null => {
+  if (typeof window === "undefined") return null;
+  const gtag = (window as any).gtag as GtagFn | undefined;
+  return typeof gtag === "function" ? gtag : null;
+};
+
 export const pageview = (url: string) => {
-  if (!GA_ID || typeof window === "undefined") return;
-  window.gtag("config", GA_ID, { page_path: url });
+  if (!GA_ID) return;
+  const gtag = getGtag();
+  if (!gtag) return; // ✅ GA ще не завантажився / нема згоди — нічого не робимо
+  gtag("config", GA_ID, { page_path: url });
 };
 
 export const gaEvent = (action: string, params?: Record<string, any>) => {
-  if (!GA_ID || typeof window === "undefined") return;
-  window.gtag("event", action, params ?? {});
+  if (!GA_ID) return;
+  const gtag = getGtag();
+  if (!gtag) return;
+  gtag("event", action, params ?? {});
 };
+
 export const trackSearch = (params: {
   city?: string;
   type?: string;
