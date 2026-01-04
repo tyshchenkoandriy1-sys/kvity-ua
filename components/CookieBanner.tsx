@@ -14,9 +14,11 @@ export default function CookieBanner() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem(STORAGE_KEY, "accepted");
-    setVisible(false);
-  };
+  localStorage.setItem("cookie_consent", "accepted");
+  setVisible(false);
+  window.location.reload();
+};
+
 
   if (!visible) return null;
 

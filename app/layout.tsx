@@ -6,6 +6,8 @@ import "./globals.css";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
 import CookieBanner from "@/components/CookieBanner";
 import GaAfterConsent from "@/components/GaAfterConsent";
+import AnalyticsScripts from "@/components/AnalyticsScripts";
+
 
 
 const geistSans = Geist({
@@ -76,8 +78,9 @@ export default function RootLayout({
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* ✅ Відстеження переходів між сторінками */}
-        <AnalyticsProvider />
-        <GaAfterConsent />
+        <AnalyticsScripts />
+<AnalyticsProvider />
+<CookieBanner />
 
         {/* ✅ ЄДИНИЙ ХЕДЕР */}
         <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
