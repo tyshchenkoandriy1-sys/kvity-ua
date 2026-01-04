@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getConsent, setConsent } from "@/lib/consent";
 
 const STORAGE_KEY = "cookie_consent";
 
@@ -9,14 +10,16 @@ export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) setVisible(true);
-  }, []);
+  const saved = getConsent();
+  if (!saved) setVisible(true);
+}, []);
 
-  const accept = () => {
-  localStorage.setItem("STORAGE_KEY", "accepted");
+const accept = () => {
+  setConsent("accepted");
   setVisible(false);
-  window.location.reload();
+
+  // ✅ повідомляємо інші компоненти (GA) без reload
+  window.dispatchEvent(new Event("cookie_consent_changed"));
 };
 
 
