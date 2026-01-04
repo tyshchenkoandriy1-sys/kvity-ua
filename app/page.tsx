@@ -548,6 +548,12 @@ export default function HomePage() {
     Політика конфіденційності
   </Link>
 </li>
+<li>
+  <Link href="/terms" className="hover:text-slate-800">
+    Умови користування
+  </Link>
+</li>
+
 
               </ul>
             </div>
