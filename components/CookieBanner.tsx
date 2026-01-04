@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const STORAGE_KEY = "kvity_cookie_consent";
+const STORAGE_KEY = "cookie_consent";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
@@ -14,7 +14,7 @@ export default function CookieBanner() {
   }, []);
 
   const accept = () => {
-  localStorage.setItem("cookie_consent", "accepted");
+  localStorage.setItem("STORAGE_KEY", "accepted");
   setVisible(false);
   window.location.reload();
 };

@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "kvity_cookie_consent";
+const STORAGE_KEY = "cookie_consent";
 
 export default function GaAfterConsent() {
   const [allowed, setAllowed] = useState(false);
