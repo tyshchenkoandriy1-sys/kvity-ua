@@ -6,6 +6,27 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
 import { gaEvent } from "@/lib/ga";
+// ✅ Нормалізація запиту (ключові слова)
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .filter((w) => w.length >= 2);
+
+// ✅ Екранування спецсимволів для ilike/or
+const escapeForIlike = (s: string) =>
+  s
+    .replaceAll("\\", "\\\\")
+    .replaceAll("%", "\\%")
+    .replaceAll("_", "\\_")
+    .replaceAll(",", "\\,")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
+
 
 
 type Vazony = {
@@ -83,8 +104,21 @@ export default function VazonyPage() {
     }
 
     if (nameFilter) {
-      query = query.ilike("name", `%${nameFilter}%`);
-    }
+  const words = normalize(nameFilter);
+
+  if (words.length) {
+    // для вазонів достатньо name, але можна додати і type (інколи там є назви)
+    const orExpr = words
+      .flatMap((w) => {
+        const ww = escapeForIlike(w);
+        return [`name.ilike.%${ww}%`, `type.ilike.%${ww}%`];
+      })
+      .join(",");
+
+    query = query.or(orExpr);
+  }
+}
+
 
     if (maxPrice) {
       const priceNumber = Number(maxPrice);

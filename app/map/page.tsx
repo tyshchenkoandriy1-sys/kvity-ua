@@ -5,6 +5,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+// ✅ Нормалізація (ключові слова)
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .filter((w) => w.length >= 2);
+
 
 
 // імпорт компонента мапи (без SSR)
@@ -90,7 +101,8 @@ export default function MapPage() {
 
   const cityFromUrl = (params.get("city") || "").trim();
   const typeFromUrl = (params.get("type") || "").trim();
-  const nameFromUrl = (params.get("name") || "").trim();
+  const nameFromUrl = (params.get("q") || params.get("name") || "").trim();
+
   const highlightShopId = (params.get("highlightShopId") || "").trim();
 
   setCityParam(cityFromUrl);
@@ -208,10 +220,17 @@ if (shopIds.length > 0) {
       const nameValue = (f.name || "").toLowerCase();
 
       const cityMatch = !cityQuery || cityValue.includes(cityQuery);
-      const typeMatch = !typeQuery || typeValue.includes(typeQuery);
-      const nameMatch = !nameQuery || nameValue.includes(nameQuery);
+const typeMatch = !typeQuery || typeValue.includes(typeQuery);
 
-      return cityMatch && typeMatch && nameMatch;
+// ✅ keyword-пошук по назві: розбиваємо на слова і шукаємо кожне слово окремо
+const nameWords = normalize(nameQuery);
+
+// ВАРІАНТ 1 (рекомендую для мапи): AND між словами, щоб не було шуму
+// "червоні троянди" => має містити і "червоні" і "троянди"
+const nameMatch =
+  nameWords.length === 0 ? true : nameWords.some((w) => nameValue.includes(w));
+
+return cityMatch && typeMatch && nameMatch;
     });
   }, [flowers, profilesMap, cityParam, typeParam, nameParam]);
 

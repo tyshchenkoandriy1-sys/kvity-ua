@@ -38,6 +38,24 @@ type Flower = {
   sale_price: number | null;
   discount_label: string | null;
 };
+// ✅ Нормалізація пошукового тексту (keyword search)
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .filter((w) => w.length >= 2);
+
+// ✅ Склеюємо name + color в один keyword-запит
+const buildSearchQuery = (name: string, color: string) => {
+  const combined = `${name ?? ""} ${color ?? ""}`.trim();
+  const words = normalize(combined);
+  return words.join(" ");
+};
+
 
 export default function HomePage() {
   const router = useRouter();
@@ -140,6 +158,7 @@ export default function HomePage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const q = buildSearchQuery(flowerName, flowerColor);
     trackSearch({
   city,
   type,
@@ -166,8 +185,7 @@ export default function HomePage() {
     const params = new URLSearchParams();
     if (city) params.set("city", city);
     if (type) params.set("type", type);
-    if (flowerName) params.set("name", flowerName);
-    if (flowerColor) params.set("color", flowerColor);
+    if (q) params.set("q", q);
 
     router.push(`/flowers?${params.toString()}`);
   };

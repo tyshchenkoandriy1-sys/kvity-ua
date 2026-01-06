@@ -7,6 +7,26 @@ import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
 import { gaEvent } from "@/lib/ga";
 
+// ✅ Нормалізація запиту (ключові слова)
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .filter((w) => w.length >= 2);
+
+// ✅ Екранування спецсимволів для ilike/or (щоб не ламалось на %, _, комах тощо)
+const escapeForIlike = (s: string) =>
+  s
+    .replaceAll("\\", "\\\\")
+    .replaceAll("%", "\\%")
+    .replaceAll("_", "\\_")
+    .replaceAll(",", "\\,")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
 
 
 type Flower = {
@@ -100,8 +120,23 @@ export default function FlowersCatalogPage() {
     }
 
     if (nameVal) {
-      query = query.ilike("name", `%${nameVal}%`);
-    }
+  const words = normalize(nameVal);
+
+  if (words.length) {
+    const fields = ["name", "type"] as const; 
+    // якщо додаси description — просто допиши сюди "description"
+
+    const orExpr = words
+      .flatMap((w) => {
+        const ww = escapeForIlike(w);
+        return fields.map((f) => `${f}.ilike.%${ww}%`);
+      })
+      .join(",");
+
+    query = query.or(orExpr);
+  }
+}
+
 
     if (typeVal) {
       query = query.ilike("type", `%${typeVal}%`);
@@ -215,23 +250,28 @@ setLoading(false);
 
     const params = new URLSearchParams(window.location.search);
 
-    const cityFromUrl = params.get("city") || "";
-    const nameFromUrl = params.get("name") || "";
-    const typeFromUrl = params.get("type") || "";
-    const maxFromUrl = params.get("maxPrice") || params.get("price") || "";
+   const cityFromUrl = params.get("city") || "";
+
+// ✅ keyword-пошук: беремо з ?q=..., але залишаємо сумісність зі старим ?name=
+const qFromUrl = params.get("q") || params.get("name") || "";
+
+const typeFromUrl = params.get("type") || "";
+const maxFromUrl = params.get("maxPrice") || params.get("price") || "";
+
 
     if (cityFromUrl) setCityFilter(cityFromUrl);
-    if (nameFromUrl) setNameFilter(nameFromUrl);
+    if (qFromUrl) setNameFilter(qFromUrl);
     if (typeFromUrl) setTypeFilter(typeFromUrl);
     if (maxFromUrl) setMaxPrice(maxFromUrl);
 
     // одразу завантажуємо список з цими фільтрами
-    fetchFlowers({
-      city: cityFromUrl,
-      name: nameFromUrl,
-      type: typeFromUrl,
-      maxPrice: maxFromUrl,
-    });
+   fetchFlowers({
+  city: cityFromUrl,
+  name: qFromUrl, // ✅ сюди кидаємо keyword-запит
+  type: typeFromUrl,
+  maxPrice: maxFromUrl,
+});
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

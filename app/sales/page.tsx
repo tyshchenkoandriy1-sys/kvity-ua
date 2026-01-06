@@ -6,6 +6,26 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
 import { gaEvent } from "@/lib/ga";
+// ✅ Нормалізація запиту (ключові слова)
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .filter((w) => w.length >= 2);
+
+// ✅ Екранування спецсимволів для ilike/or
+const escapeForIlike = (s: string) =>
+  s
+    .replaceAll("\\", "\\\\")
+    .replaceAll("%", "\\%")
+    .replaceAll("_", "\\_")
+    .replaceAll(",", "\\,")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
 
 
 
@@ -102,8 +122,25 @@ export default function SalesPage() {
     }
 
     if (nameFilter) {
-      query = query.ilike("name", `%${nameFilter}%`);
-    }
+  const words = normalize(nameFilter);
+
+  if (words.length) {
+    // На сторінці знижок корисно шукати по name і type (і можна по category)
+    const orExpr = words
+      .flatMap((w) => {
+        const ww = escapeForIlike(w);
+        return [
+          `name.ilike.%${ww}%`,
+          `type.ilike.%${ww}%`,
+          `category.ilike.%${ww}%`,
+        ];
+      })
+      .join(",");
+
+    query = query.or(orExpr);
+  }
+}
+
 
     const { data: flowersData, error: flowersError } = await query;
 
