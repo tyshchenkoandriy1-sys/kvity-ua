@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { gaEvent } from "@/lib/ga";
+
 
 type Flower = {
   id: string;
@@ -59,6 +61,14 @@ export default function OrderPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!flower) return;
+    gaEvent("order_submit", {
+    flower_id: flower.id,
+    flower_name: flower.name,
+    city: flower.city ?? "(unknown)",
+    price: flower.price,
+    quantity: Number(quantity),
+  });
+    
 
     setError(null);
     setSuccess(null);

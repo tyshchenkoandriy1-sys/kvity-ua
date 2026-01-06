@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+import { gaEvent } from "@/lib/ga";
 
 
 type Vazony = {
@@ -362,18 +363,7 @@ if (shopIds.length > 0) {
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
-                      onClick={() => {
-  gaEvent("order_start", {
-    flower_id: flower.id,
-    flower_name: flower.name,
-    city: flower.city,
-    price: flower.price,
-    is_sale: hasDiscount,
-    stock: flowers.stock,
-  });
-
-  router.push(`/order/${flower.id}`);
-}}
+                      onClick={() => router.push(`/order/${item.id}`)}
                       disabled={item.stock <= 0}
                       className={`w-full rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
                         item.stock > 0
