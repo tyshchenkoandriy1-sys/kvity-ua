@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { gaEvent } from "@/lib/ga";
+
 
 const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
 
@@ -33,6 +35,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+   
 
     await supabase.auth.signOut();
 
@@ -71,6 +74,11 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
+    gaEvent("seller_register", {
+  shop_name: shopName,
+  city,
+});
+    
 
     await supabase.auth.signOut();
 
