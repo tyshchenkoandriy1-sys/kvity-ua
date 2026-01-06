@@ -36,3 +36,20 @@ export const trackSearch = (params: {
     type: params.type || "any",
   });
 };
+export const trackOrderStart = (flower: {
+  id: number | string;
+  name?: string;
+  city?: string;
+  price?: number;
+  stock?: number;
+  is_sale?: boolean;
+}) => {
+  gaEvent("order_start", {
+    flower_id: flower.id,
+    flower_name: flower.name ?? "",
+    city: flower.city ?? "",
+    price: flower.price ?? null,
+    stock: flower.stock ?? null,
+    is_sale: !!flower.is_sale,
+  });
+};

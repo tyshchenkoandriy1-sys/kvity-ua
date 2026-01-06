@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SellerRatingBadge } from "@/components/SellerRatingBadge";
+import { gaEvent } from "@/lib/ga";
+
 
 
 type Flower = {
@@ -380,7 +382,18 @@ if (ratingsError) {
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
-                      onClick={() => router.push(`/order/${flower.id}`)}
+                      onClick={() => {
+  gaEvent("order_start", {
+    flower_id: flower.id,
+    flower_name: flower.name,
+    city: flower.city,
+    price: flower.price,
+    is_sale: hasDiscount,
+    stock: flower.stock,
+  });
+
+  router.push(`/order/${flower.id}`);
+}}
                       disabled={flower.stock <= 0}
                       className={`w-full rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
                         flower.stock > 0

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { trackSearch } from "@/lib/ga";
+import { gaEvent } from "@/lib/ga";
+
 
 
 const CITIES = ["Київ", "Львів", "Івано-Франківськ"];
@@ -671,12 +673,22 @@ function FlowerCard({ flower }: { flower: Flower }) {
       </p>
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        <Link
-          href={`/order/${flower.id}`}
-          className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800"
-        >
-          {hasSale ? "Замовити зі знижкою" : "Замовити"}
-        </Link>
+       <Link
+  href={`/order/${flower.id}`}
+  onClick={() => {
+    gaEvent("order_start", {
+      flower_id: flower.id,
+      flower_name: flower.name,
+      city: flower.city,
+      price: flower.price,
+      is_sale: flower.is_on_sale,
+    });
+  }}
+  className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white"
+>
+  {hasSale ? "Замовити зі знижкою" : "Замовити"}
+</Link>
+
         <button
           type="button"
           onClick={handleMapClick}
