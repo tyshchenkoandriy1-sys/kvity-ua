@@ -76,7 +76,7 @@ export default function Page() {
             </div>
 
             <a
-              href="https://instagram.com/kvity.info"
+              href="https://instagram.com/kvity.info.ua"
               target="_blank"
               rel="noreferrer"
               className="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-medium text-neutral-900 ring-1 ring-neutral-200 hover:bg-neutral-100 md:w-auto"
@@ -117,13 +117,7 @@ export default function Page() {
               <a href="mailto:flower.work001@gmail.com">
                 flower.work001@gmail.com
               </a>
-              <a
-                href="https://t.me/kvityinfo"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Telegram
-              </a>
+
             </div>
           </div>
 
